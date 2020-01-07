@@ -45,6 +45,7 @@
     return $abslinks;
   }
 
+  // pass html content from web page and return an array of links
   function getLinks($content) {            // adapted from example on PHP.NET/manual given by Jay Gilford
 
       // Create a new DOM Document to hold our webpage structure
@@ -71,7 +72,10 @@
         }
       }
 
+      // convert all relative links to absolute
       $links = relativeToAbsoluteLinks($links);
+
+
 
       //Return the links
       return $links;
