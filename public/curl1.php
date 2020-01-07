@@ -33,6 +33,18 @@
     // echo ($output);
   }
 
+  function relativeToAbsoluteLinks($rellinks) {
+    $abslinks = array();
+    foreach ($rellinks as $link) {
+      if (substr($link, 0, 4) == 'http') {
+        array_push($abslinks, $link);
+      } else {
+        array_push($abslinks, 'https://www.musement.com'.$link);
+      }
+    }
+    return $abslinks;
+  }
+
   function getLinks($content) {            // adapted from example on PHP.NET/manual given by Jay Gilford
 
       // Create a new DOM Document to hold our webpage structure
@@ -58,6 +70,8 @@
           // $links[] = array('url' => $link->getAttribute('href'), 'text' => $link->nodeValue);
         }
       }
+
+      $links = relativeToAbsoluteLinks($links);
 
       //Return the links
       return $links;
