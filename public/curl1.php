@@ -1,5 +1,32 @@
 <?php
 
+  // Returns array containing the urls of each city page on the website, as gathered from the API
+  // Requires the $locale used for the request header (es-ES / it-IT / fr-FR)
+  function getCityURLs($locale) {
+    // Set API URL
+    $url = 'https://api.musement.com/api/v3/cities';
+    $ch = curl_init($url);
+    // allows a string to be set to the result of curl_exec
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    // set locale and content type in header
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+      'Accept-Language: '.$locale.'\'',
+      'Content-Type: application/json'
+    ]);
+    $res = curl_exec($ch);
+    curl_close($ch);
+
+    // move the results into an array
+    $cities = json_decode($res, true);
+    // create a new array containing all the city urls only
+    $cityurls = array();
+    foreach ($cities as $city) {
+      array_push($cityurls, $city['url']);
+    }
+
+    return $cityurls;
+  }
+
   function getPageData($url) {
 
     // create curl resource
