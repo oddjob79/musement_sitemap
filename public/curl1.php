@@ -41,8 +41,8 @@
         array_push($abslinks, $link);
       // if relative link then add protocol and domain
       } else {
-        // array_push($abslinks, 'https://www.musement.com'.$link);
-        array_push($abslinks, 'http://books.toscrape.com/'.$link);
+        array_push($abslinks, 'https://www.musement.com'.$link);
+        // array_push($abslinks, 'http://books.toscrape.com/'.$link);
       }
     }
     return $abslinks;
@@ -83,10 +83,12 @@
       return $pagelinks;
   }
 
-  function writeData($pageinfo, $scannedurls) {
+  function writeData($pageinfo) {
     // echo sitemap information
-    echo 'HTTP CODE = ', $pageinfo['http_code']; // $http_code;
+
+    echo '<br />HTTP Code = ', $pageinfo['http_code'];
     echo '<br />URL = ', $pageinfo['url']; // $url;
+    // echo '<br />Redirect URL = ', $pageinfo['redirect_url'];
     if ($pageinfo['filetime'] != -1) {
       echo '<br />Filetime = ', date("Y-m-d H:i:s", $pageinfo['filetime']); // date("Y-m-d H:i:s", $filetime);
     } else {
@@ -94,16 +96,14 @@
     }
     echo '<br />';
 
-    array_push($scannedurls, $pageinfo['url']);
-
-    return $scannedurls;
+    // return $pageinfo['url'];
   }
 
-  function scanURLs($masterlinks, $scannedurls) {
-    // limit $masterlinks for testing
-    $masterlinks = array_slice($masterlinks, 0, 10);
+  function scanURLs($linksfound, $scannedurls) {
+    // limit $linksfound for testing
+    $linksfound = array_slice($linksfound, 0, 50);
     // for each url in masterlinks
-    foreach ($masterlinks as $link) {
+    foreach ($linksfound as $link) {
       if (!in_array($link, $scannedurls)) {
         // use curl to get pgae data
         $res = getPageData($link);
@@ -111,61 +111,58 @@
         $pageinfo = $res['info'];
         $pagecontent = $res['content'];
 
-        $scannedurls = writeData($pageinfo, $scannedurls);
+        // Only evaluate links which are valid http codes
+        if ($pageinfo['http_code'] != 200) {
+          array_push($scannedurls, $pageinfo['url']);
+          continue;
+        }
+
+        // Write to sitemap
+        writeData($pageinfo);
 
         // GET NEW LINKS
-        // generate list of links from page content
-        $linklist = getLinks($pagecontent);
-        // merge list of links returned from page with "master" list of links
-        $masterlinks = array_merge($masterlinks, $linklist);
-        // remove dupes
-        $masterlinks = array_unique($masterlinks);
+        // Only scan musement pages for more links
+        if (substr(parse_url($link, PHP_URL_HOST), -12) == 'musement.com') {
+          // generate list of links from page content
+          $linklist = getLinks($pagecontent);
+          // merge list of links returned from page with "master" list of links
+          $linksfound = array_merge($linksfound, $linklist);
+          // remove dupes
+          $linksfound = array_unique($linksfound);
+        }
+
+        //update $scannedurls
+        array_push($scannedurls, $pageinfo['url']);
+
       }
     }
-    return array('newlinks'=>$masterlinks, 'scanned'=>$scannedurls);
+    return array('newlinks'=>$linksfound, 'written'=>$scannedurls);
   }
 
   // call function to retrieve page data
-  // $target = "https://www.musement.com/es/";
-  $target = "http://books.toscrape.com/";
+  $target = "https://www.musement.com/es/";
+  // $target = "http://books.toscrape.com/";
   // $target = "https://www.php.net/manual/en/function.explode.php"; // example url with last modified time in header
 
+  // // TEST getting page data
   // $res = getPageData($target);
-  // $pageinfo = $res['info'];
-  // $pagecontent = $res['content'];
-  //
-  // echo 'HTTP CODE = ', $pageinfo['http_code']; // $http_code;
-  // echo '<br />URL = ', $pageinfo['url']; // $url;
-  // if ($pageinfo['filetime'] != -1) {
-  //   echo '<br />Filetime = ', date("Y-m-d H:i:s", $pageinfo['filetime']); // date("Y-m-d H:i:s", $filetime);
-  // } else {
-  //   echo '<br />Filetime = None';
-  // }
-  // echo '<br />';
-  // // generate list of links from page content
-  // $linklist = getLinks($pagecontent);
-  // // merge list of links returned from page with "master" list of links
-  // $masterlinks = array_merge($masterlinks, $linklist);
-  // // remove dupes
-  // $masterlinks = array_unique($masterlinks);
-  // // echo '<br />Links: ';
-  // // var_dump($linklist);
-  // // echo '<br />Content = ', $content;
+  // echo $res['content'];
+  // exit;
 
-  $masterlinks = array($target);
+  $linksfound = array($target);
   $scannedurls = array();
   $i=0;
 
-  while (!empty(array_diff($masterlinks, $scannedurls)) && $i<2) {
+  while (!empty(array_diff($linksfound, $scannedurls)) && $i<2) {
     echo '<br />Loop number '.$i.'<br />';
-    $output = scanURLs($masterlinks, $scannedurls);
-    $masterlinks = $output['newlinks'];
-    $scannedurls = $output['scanned'];
+    $output = scanURLs($linksfound, $scannedurls);
+    $linksfound = $output['newlinks'];
+    $scannedurls = $output['written'];
     $i++;
   }
 
-  echo '<br />New Links:<br />';
-  var_dump($masterlinks);
+  echo '<br />Located Links:<br />';
+  var_dump($linksfound);
 
   echo '<br />Scanned URLs:<br />';
   var_dump($scannedurls);
