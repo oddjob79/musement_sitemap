@@ -118,7 +118,7 @@
   }
 
   // pass html content from web page and return an array of links
-  function getLinks($content) {            // adapted from example on PHP.NET/manual given by Jay Gilford
+  function parseContent($content) {            // adapted from example on PHP.NET/manual given by Jay Gilford
     // Create a new DOM Document to hold our webpage structure
     $xml = new DOMDocument();
     // set error level
@@ -141,23 +141,23 @@
     // convert all relative links to absolute (do this now for comparison purposes)
     $pagelinks = relativeToAbsoluteLinks($pagelinks);
 
-    $state = array();
+    // Retrieve the page 'type'
+    // locate the window.__INITIAL_STATE__ script which contains page details
     foreach($xml->getElementsByTagName('script') as $script) {
       if (substr($script->textContent, 0, 24) == 'window.__INITIAL_STATE__') {
-        // ;(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());
+        // remove beginning and end of string so you are left with json only
         $state = substr($script->textContent, 25, -122);
         continue;
       }
     }
 
-    // echo $state;
-
+    // decode json string
     $stateinfo = json_decode($state);
-    // var_dump($stateinfo->state->router->view);
-    echo $stateinfo->state->router->view;
+    // returns the view value (contains the page type)
+    $view = $stateinfo->state->router->view;
 
     //Return the links
-    return $pagelinks;
+    return array('view'=>$view, 'links'=>$pagelinks);
   }
 
   // specifies how the returned data will be output
@@ -212,21 +212,29 @@
           continue;
         }
 
-        // GET NEW LINKS
-        // Only scan musement pages for more links
-        if (substr(parse_url($url, PHP_URL_HOST), -12) == 'musement.com') {
-          // generate list of links from page content
-          $linklist = getLinks($pagecontent);
-          // merge list of links returned from page with "master" list of links
-          $linksfound = array_merge($linksfound, $linklist);
-          // remove dupes
-          $linksfound = array_unique($linksfound);
+        // Only evaluate musement.com links
+        if (substr(parse_url($url, PHP_URL_HOST), -12) != 'musement.com') {
+          continue;
         }
 
+        // Send page content to function to return only information which will be used
+        $parsedcontent = parseContent($pagecontent);
+        // generate list of links from page content
+        $linklist = $parsedcontent['links'];
+        // merge list of links returned from page with "master" list of links
+        $linksfound = array_merge($linksfound, $linklist);
+        // remove dupes
+        $linksfound = array_unique($linksfound);
 
-        // var_dump($linklist);
+        // locate page type from page content
+        $viewtype = $parsedcontent['view'];
+
+        echo '<br />View type = ', $viewtype;
+
+        // city, event, attraction, editorial
+
         // Now we have the links, check to see if it's a city-related page. Then to see if it's (related to) a top 20 city.
-        if (in_array("/search/?city", $linklist)) {
+        if (in_array($viewtype, array('city', 'event', 'attraction', 'editorial'))) {
           // it's a city-related page. Find the city it relates to.
           // remove everything after the second element in the url path to see if it is a city page or the child of city page
           $path = parse_url($url, PHP_URL_PATH);
@@ -237,13 +245,14 @@
           $locale = 'es-ES';
           // retrieve top 20 city listfrom API
           $citylist = getCityURLs($locale);
-          // var_dump($citylist);
+          // is the city one of the top 20 cities from the API?
           if (!in_array($cityurl, $citylist)) {
             echo '<br />This url is not in the top 20 cities - ', $cityurl;
             continue;
           }
-
         }
+
+        foreach
 
         // Write to sitemap
         writeData($pageinfo);
