@@ -57,16 +57,19 @@
 
   }
 
-  function getCityURLs($locale) {
+  function getCityData($locale) {
     // retrieve array containing all city data for that locale
     $cities = getAPIData('https://api.musement.com/api/v3/cities?limit=20', $locale);
 
     // create a new array containing all the city urls only
     $cityurls = array();
+    $cityids = array();
     foreach ($cities as $city) {
+      // $citarr = array('id'=>$city['id'], 'url'=>$city['url']);
       array_push($cityurls, $city['url']);
+      array_push($cityids, $city['id']);
     }
-    return $cityurls;
+    return array('urls'=>$cityurls, 'ids'=>$cityids);
   }
 
   function skipURLs($url, $workedurls) {
@@ -243,16 +246,15 @@
           $cityurl = parse_url($url, PHP_URL_SCHEME).'://'.parse_url($url, PHP_URL_HOST).substr($path, 0,  4).$city.'/';
           // TO DO - set locale (testing only, will need to be set properly elsewhere)
           $locale = 'es-ES';
-          // retrieve top 20 city listfrom API
-          $citylist = getCityURLs($locale);
+          // retrieve top 20 city list from API
+          $citylist = getCityData($locale);
+
           // is the city one of the top 20 cities from the API?
-          if (!in_array($cityurl, $citylist)) {
+          if (!in_array($cityurl, $citylist['urls'])) {
             echo '<br />This url is not in the top 20 cities - ', $cityurl;
             continue;
           }
         }
-
-        foreach
 
         // Write to sitemap
         writeData($pageinfo);
