@@ -51,6 +51,11 @@ class SQLiteInteract {
   // @param int $id
   // @param string $url
   public function insertCities() {
+    // echo '<br />Size of city array = ', sizeof($this->retrieveCities());
+    // check if data already exists, if so, exit
+    if (sizeof($this->retrieveCities()) == 20) {
+      return;
+    }
     // set vars for data retrieval
     $cityapiurl = 'https://api.musement.com/api/v3/cities?limit=20';
     $locale = 'es-ES';
@@ -75,7 +80,7 @@ class SQLiteInteract {
   }
 
   // retrieves all citydata
-  // return array containing city ids & urls
+  // return array containing city id, name, url
   public function retrieveCities() {
     // prepare select statement
     $stmt = $this->pdo->query('SELECT id, name, url FROM cities');
@@ -100,7 +105,10 @@ class SQLiteInteract {
   public function insertEvents() {
     // retrieve top 20 cities
     $citydata = $this->retrieveCities();
-
+    // check if data already exists, if so, exit TO DO change to check size of events table
+    if (sizeof($this->retrieveEvents()) == 400) {
+      return;
+    }
     // retrieve top 20 activities per city and insert into database
     foreach ($citydata as $city) {
       // set vars for data retrieval
@@ -126,6 +134,32 @@ class SQLiteInteract {
       }
     }
   }
+
+  // retrieves all event data
+  // return array containing event id, uuid, title, url, city_id
+  public function retrieveEvents() {
+    // prepare select statement
+    $stmt = $this->pdo->query('SELECT id, uuid, title, url, city_id FROM events');
+    // create empty $eventdata object
+    $eventdata = [];
+    // fetch data from statement
+    try {
+      while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+        // update with rows of data
+        $eventdata[] = [
+          'id' => $row['id'],
+          'uuid' => $row['uuid'],
+          'title' => $row['title'],
+          'url' => $row['url'],
+          'city_id' => $row['city_id']
+        ];
+      }
+    } catch (Exception $e) {
+      echo 'Error retrieving data: ',  $e->getMessage(), "\n";
+    }
+    return $eventdata;
+  }
+
 
 }
 ?>
