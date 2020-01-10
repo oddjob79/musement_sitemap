@@ -1,5 +1,9 @@
 <?php
 
+  function connectToDB() {
+
+  }
+
   // use curl to retrieve page content and information for specified url
   function getPageData($url) {
     // create curl resource
@@ -254,6 +258,18 @@
             echo '<br />This url is not in the top 20 cities - ', $cityurl;
             continue;
           }
+          // chekc if activities are in top 20 by city. If it's an event
+          // if ($viewtype == 'event') {
+          //   foreach ($citylist['ids'] as $cityid) {
+          //     $eventlistbycityurl = 'https://api.musement.com/api/v3/cities/'.$cityid.'/activities?limit=20';
+          //     $topevents = getAPIData($eventlistbycityurl, $locale);
+          //     if (!in_array($url, $topevents))
+          // }
+        // }
+
+
+
+
         }
 
         // Write to sitemap
