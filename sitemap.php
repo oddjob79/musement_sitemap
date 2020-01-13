@@ -5,6 +5,7 @@ require 'vendor/autoload.php';
 // use classes for SQLite connection
 use App\SQLiteConnection as SQLiteConnection;
 use App\SQLiteInteract as SQLiteInteract;
+use App\CurlDataRetrieval as CurlDataRetrieval;
 
 // connect to sqlite db, or create if not exists
 $pdo = (new SQLiteConnection())->connect();
@@ -30,19 +31,24 @@ $sqlite->seedData();
 $locale = 'es';
 // Set initial target url(s)
 $target = array('https://www.musement.com/'.$locale.'/');
+// $target = array('https://www.musement.com/es/', 'https://www.musement.com/it/', 'https://www.musement.com/fr/');
 
 // insert target into list of links to scan
-$sqlite->insertLinks($target);
-// retrieve list of links
-$linksfound = $sqlite->retrieveLinks();
+$sqlite->insertLink($target);
 
-// while (!empty(array_diff($linksfound, $workedurls)) && $i<2) {
-//   echo '<br />Loop number '.$i.'<br />';
-//   $output = scanURLs($linksfound, $workedurls);
-//   $linksfound = $output['newlinks'];
-//   $workedurls = $output['written'];
-//   $i++;
-// }
+// retrieve list of unworked links to scan
+$linksfound = $sqlite->retrieveLinks();
+// limit $linksfound for testing
+$linksfound = array_slice($linksfound, 0, 50);
+
+// instantiate scanning library
+$scan = new CurlDataRetrieval();
+// for each url in masterlinks
+foreach ($linksfound as $url) {
+  $scan->scanURL($url, $sqlite);
+}
+
+
 
 echo '<br />Located Links:<br />';
 var_dump($linksfound);

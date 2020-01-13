@@ -54,7 +54,7 @@ class SQLiteInteract {
                   type TEXT NOT NULL)',
           'CREATE TABLE IF NOT EXISTS links (
                   id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  url TEXT NOT NULL,
+                  url TEXT NOT NULL UNIQUE,
                   type INTEGER NOT NULL DEFAULT 0,
                   include INTEGER NOT NULL DEFAULT 1,
                   worked INTEGER NOT NULL DEFAULT 0)'
@@ -70,7 +70,7 @@ class SQLiteInteract {
   // @param string $url
   private function insertCities() {
     // echo '<br />Size of city array = ', sizeof($this->retrieveCities());
-    // check if data already exists, if so, exit
+    // check if data already exists, if so, exit - TO DO Update for all locales (60)
     if (sizeof($this->retrieveCities()) == 20) {
       return;
     }
@@ -123,7 +123,7 @@ class SQLiteInteract {
   private function insertEvents() {
     // retrieve top 20 cities
     $citydata = $this->retrieveCities();
-    // check if data already exists, if so, exit TO DO change to check size of events table
+    // check if data already exists, if so, exit TO DO update for all locales (1200)
     if (sizeof($this->retrieveEvents()) == 400) {
       return;
     }
@@ -201,7 +201,7 @@ class SQLiteInteract {
   }
 
   // takes $urls array and uses data to update the links table
-  public function insertLinks($urls) {
+  public function insertLink($urls) {
     foreach ($urls as $url) {
       // check link exists in the links table and continue if not
       if (!$this->checkLinkExists($url)) {
@@ -218,10 +218,10 @@ class SQLiteInteract {
     }
   }
 
-  // returns all links found from site as array
+  // returns all UNWORKED links found from site as array
   public function retrieveLinks() {
     // prepare select statement
-    $stmt = $this->pdo->query('SELECT id, url, type, include, worked FROM links');
+    $stmt = $this->pdo->query('SELECT id, url, type, include, worked FROM links where worked = 0');
     // create empty $eventdata object
     $linkdata = [];
     // fetch data from statement
@@ -246,10 +246,10 @@ class SQLiteInteract {
     // prepare select statement
     $stmt = $this->pdo->prepare('SELECT id FROM links WHERE url = :url');
     try {
-      // execute sql insert statement
+      // execute sql select statement
       $stmt->execute([':url' => $url]);
     } catch (Exception $e) {
-      echo 'Error writing to DB: ',  $e->getMessage(), "\n";
+      echo 'Error querying DB: ',  $e->getMessage(), "\n";
     }
     $linkdata = [];
     while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
@@ -260,6 +260,35 @@ class SQLiteInteract {
     }
     return $linkdata;
   }
+
+  public function setLinkToWorked($url) {
+    // Prepare SQL Update Statement for setting link to 'worked'
+    $stmt = $this->pdo->prepare('UPDATE links SET worked = 1 where url = :url');
+
+    // try to execute sql update statement
+    try {
+      $stmt->execute([':url' => $url]);
+    } catch (Exception $e) {
+      echo 'Error querying DB: ',  $e->getMessage(), "\n";
+    }
+  }
+
+// NOT NEEDED I THINK
+  // public function checkLinksToWork() {
+  //   // send sql query to db
+  //   try {
+  //     $stmt = $this->pdo->query('SELECT id FROM links WHERE worked = 0');
+  //   } catch (Exception $e) {
+  //     echo 'Error querying DB: ',  $e->getMessage(), "\n";
+  //   }
+  //
+  //   if ($stmt->fetch(\PDO::FETCH_ASSOC)) {
+  //     return 1;
+  //   } else {
+  //     return 0;
+  //   }
+  //   // return $stmt->fetch(\PDO::FETCH_ASSOC);
+  // }
 
 }
 ?>
