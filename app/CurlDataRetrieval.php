@@ -90,8 +90,13 @@ class CurlDataRetrieval {
       if (substr($link->getAttribute('href'), 0, 7) != 'mailto:' && substr($link->getAttribute('href'), 0, 4) != 'tel:') {
         // make sure link is absolute
         $url = $this->relativeToAbsoluteLink($link->getAttribute('href'));
-        // insert url into db
-        $sqlite->insertLink($url);
+        $i=0;
+        while ($i<5) {
+          $i++;
+          // insert url into db
+          $sqlite->insertLink($url);
+        }
+
       }
     }
   }
@@ -100,7 +105,9 @@ class CurlDataRetrieval {
   // @param $xml object
   // return $view (page type)
   private function scrapeView($xml) {
-    // Retrieve the page 'type'
+    // define $state and $view  as empty strings
+    $state = ''; $view = '';
+
     // locate the window.__INITIAL_STATE__ script which contains page details
     foreach($xml->getElementsByTagName('script') as $script) {
       if (substr($script->textContent, 0, 24) == 'window.__INITIAL_STATE__') {
@@ -109,10 +116,13 @@ class CurlDataRetrieval {
         continue;
       }
     }
-    // decode json string
-    $stateinfo = json_decode($state);
-    // returns the view value (contains the page type)
-    $view = $stateinfo->state->router->view;
+    // if $state exists then set $view
+    if ($state != '') {
+      // decode json string
+      $stateinfo = json_decode($state);
+      // returns the view value (contains the page type)
+      $view = $stateinfo->state->router->view;
+    }
 
     return $view;
   }
@@ -188,31 +198,33 @@ class CurlDataRetrieval {
   public function scanURL($url, $sqlite) {
     // use curl to get page data
     $res = $this->getPageData($url);
-    echo $url . ' scanned.<br />';
+    error_log($url . ' scanned.<br />', 0);
     // separate into page content (for links) and page info (for sitemap)
     $pageinfo = $res['info'];
     $pagecontent = $res['content'];
 
-    // filter out unwanted pages
+    // filter out unwanted pages (html errors and non musement pages)
     $validurl = $this->filterURLs($pageinfo);
 
-    echo $url . ' filtered. Valid: '.$validurl.'<br />';
+    error_log($url . ' filtered. Valid: '.$validurl.'<br />', 0);
 
     // Send page content to function to return only information which will be used
     // Parse HTML. Insert all links found into links table, and return the page type (view)
-    $viewtype = $this->parseContent($pagecontent, $sqlite);
-    echo $url . ' parsed.<br />';
+    if ($validurl == 1) {
+      $viewtype = $this->parseContent($pagecontent, $sqlite);
+      error_log($url . ' parsed.<br />', 0);
+    }
 
     // Now we have the links, check to see if it's a city-related page.
     // city, event, attraction, editorial
     if (in_array($viewtype, array('city', 'event', 'attraction', 'editorial'))) {
       //  Now see if it's (related to) a top 20 city.
       $validurl = $this->isTop20City($url, $sqlite);
-      echo $url . ' cityfiltered. Valid: '.$validurl.'<br />';
+      error_log($url . ' cityfiltered. Valid: '.$validurl.'<br />', 0);
       //  We know it's related to a top 20 city, now see if it's a top 20 activity / event.
       if ($viewtype == 'event') {
         $validurl = $this->isTop20Event($url, $sqlite);
-        echo $url . ' activityfiltered. Valid: '.$validurl.'<br />';
+        error_log($url . ' activityfiltered. Valid: '.$validurl.'<br />', 0);
       }
     }
 

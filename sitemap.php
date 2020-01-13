@@ -20,42 +20,60 @@ $sqlite->seedData();
 
 // START PROGRAM
 // Set locale (probably scrap)
-echo '1';
 $locale = 'es';
-echo '2';
 // Set initial target url(s)
 $target = 'https://www.musement.com/'.$locale.'/';
 // $target = array('https://www.musement.com/es/', 'https://www.musement.com/it/', 'https://www.musement.com/fr/');
 
-echo '3';
 // insert target into list of links to scan
 $sqlite->insertLink($target);
-echo '4';
-// retrieve list of unworked links to scan
-$linksfound = $sqlite->retrieveLinks();
-echo '5';
-// limit $linksfound for testing
-$linksfound = array_slice($linksfound, 0, 50);
-echo '6';
+
 // instantiate scanning library
 $scan = new CurlDataRetrieval();
-echo '7';
 
 // consider do while loop to test if there are any non worked links
 // consider counting non worked links and setting i to the count, then re-test
 
-// for each url in links table
-foreach ($linksfound as $link) {
-  $i=0;
-  echo $link['url'].'<br />';
-  while ($i<10) {
-    // $scan->scanURL($link['url'], $sqlite);
-    // var_dump($link);
+// DO NOT RUN WITHOUT ADDITIONAL CHECKS - ADD DEBUGGING TO CHECK IT IS REQUERYING THE TABLE - ADD LIMITER TO STOP IT GOING MENTAL
+$linksfound = $sqlite->retrieveLinks();
+// while ($linksfound = $sqlite->retrieveLinks() && $i<5) {
+// while ($linksfound) {
+//   var_dump($linksfound);
+//                 // // limit $linksfound for testing
+//                 // $linksfound = array_slice($linksfound, 0, 50);
+//
+//   // for each url in links table
+//   foreach ($linksfound as $link) {
+//     echo 'This is the url sent for processing: '.$link['url'];
+//     // scan & process
+//     $scan->scanURL($link['url'], $sqlite);
+//   }
+// }
 
-    $i++;
-  }
+error_log('first instance of linksfound = '.var_dump($linksfound), 0);
+
+foreach ($linksfound as $link) {
+  error_log('This is the url sent for processing: '.$link['url'], 0);
+  // scan & process
+  $scan->scanURL($link['url'], $sqlite);
 }
-echo '8';
+
+$morelinksfound = $sqlite->retrieveLinks();
+
+error_log('second instance of linksfound = '.var_dump($morelinksfound), 0);
+
+// foreach ($linksfound as $link) {
+//   error_log('This is the url sent for processing: '.$link['url'], 0);
+//   // scan & process
+//   $scan->scanURL($link['url'], $sqlite);
+// }
+
+
+
+
+
+
+
 
 // // test output
 // $writelinks = $sqlite->retrieveLinks();
