@@ -11,6 +11,7 @@ use App\CurlDataRetrieval as CurlDataRetrieval;
 /**
  * SQLite Interact with Database
  */
+ // Change to DB Setup queries only
 class SQLiteInteract {
 
   /**
@@ -26,21 +27,38 @@ class SQLiteInteract {
       $this->pdo = $pdo;
   }
 
+  // // enable foreign key constraints - INEXPLICABLY NOT WORKING!!!!!!!!!
+  // public function enableForeignKeys() {
+  //   // enable foreign key constraints
+  //   $command = 'PRAGMA foreign_keys=1;';
+  //   $this->pdo->exec($command);
+  // }
+
   /**
    * create tables
    */
   public function createTables() {
       $commands = ['CREATE TABLE IF NOT EXISTS cities (
-                      id TINYINT PRIMARY KEY,
-                      name VARCHAR(50) NOT NULL,
-                      url VARCHAR(100) NOT NULL
+                      id INTEGER PRIMARY KEY,
+                      name TEXT NOT NULL,
+                      url TEXT NOT NULL
                     )',
           'CREATE TABLE IF NOT EXISTS events (
                   id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  uuid VARCHAR(36) NOT NULL,
-                  title VARCHAR(255) NOT NULL,
-                  url VARCHAR(255) NOT NULL,
-                  city_id TINYINT NOT NULL)'];
+                  uuid TEXT NOT NULL,
+                  title TEXT NOT NULL,
+                  url TEXT NOT NULL,
+                  city_id INTEGER NOT NULL)',
+          'CREATE TABLE IF NOT EXISTS types (
+                  id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  type TEXT NOT NULL)',
+          'CREATE TABLE IF NOT EXISTS links (
+                  id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  url TEXT NOT NULL,
+                  type INTEGER NOT NULL DEFAULT 0,
+                  include INTEGER NOT NULL DEFAULT 1,
+                  worked INTEGER NOT NULL DEFAULT 0)'
+          ];
       // execute the sql commands to create new tables
       foreach ($commands as $command) {
           $this->pdo->exec($command);
@@ -50,7 +68,7 @@ class SQLiteInteract {
   // Inserts city id and url into cities table
   // @param int $id
   // @param string $url
-  public function insertCities() {
+  private function insertCities() {
     // echo '<br />Size of city array = ', sizeof($this->retrieveCities());
     // check if data already exists, if so, exit
     if (sizeof($this->retrieveCities()) == 20) {
@@ -102,7 +120,7 @@ class SQLiteInteract {
     return $citydata;
   }
 
-  public function insertEvents() {
+  private function insertEvents() {
     // retrieve top 20 cities
     $citydata = $this->retrieveCities();
     // check if data already exists, if so, exit TO DO change to check size of events table
@@ -160,6 +178,88 @@ class SQLiteInteract {
     return $eventdata;
   }
 
+  private function insertTypes() {
+    $typedata = array('unknown', 'city', 'event', 'attraction', 'editiorial', 'external', 'other');
+    // run through each city array to insert to db
+    foreach ($typedata as $type) {
+      // prepare sql statement
+      $sql = 'INSERT INTO types(type) VALUES(:type)';
+      $stmt = $this->pdo->prepare($sql);
+      try {
+        // execute sql insert statement
+        $stmt->execute([':type' => $type]);
+      } catch (Exception $e) {
+        echo 'Error writing to DB: ',  $e->getMessage(), "\n";
+      }
+    }
+  }
+
+  public function seedData() {
+    $this->insertCities();
+    $this->insertEvents();
+    $this->insertTypes();
+  }
+
+  // takes $urls array and uses data to update the links table
+  public function insertLinks($urls) {
+    foreach ($urls as $url) {
+      // check link exists in the links table and continue if not
+      if (!$this->checkLinkExists($url)) {
+        // prepare sql statement
+        $sql = 'INSERT INTO links(url) VALUES(:url)';
+        $stmt = $this->pdo->prepare($sql);
+        try {
+          // execute sql insert statement
+          $stmt->execute([':url' => $url]);
+        } catch (Exception $e) {
+          echo 'Error writing to DB: ',  $e->getMessage(), "\n";
+        }
+      }
+    }
+  }
+
+  // returns all links found from site as array
+  public function retrieveLinks() {
+    // prepare select statement
+    $stmt = $this->pdo->query('SELECT id, url, type, include, worked FROM links');
+    // create empty $eventdata object
+    $linkdata = [];
+    // fetch data from statement
+    try {
+      while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+        // update with rows of data
+        $linkdata[] = [
+          'id' => $row['id'],
+          'url' => $row['url'],
+          'type' => $row['type'],
+          'include' => $row['include'],
+          'worked' => $row['worked']
+        ];
+      }
+    } catch (Exception $e) {
+      echo 'Error retrieving data: ',  $e->getMessage(), "\n";
+    }
+    return $linkdata;
+  }
+
+  public function checkLinkExists($url) {
+    // prepare select statement
+    $stmt = $this->pdo->prepare('SELECT id FROM links WHERE url = :url');
+    try {
+      // execute sql insert statement
+      $stmt->execute([':url' => $url]);
+    } catch (Exception $e) {
+      echo 'Error writing to DB: ',  $e->getMessage(), "\n";
+    }
+    $linkdata = [];
+    while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+      // update with rows of data
+      $linkdata[] = [
+        'id' => $row['id']
+      ];
+    }
+    return $linkdata;
+  }
 
 }
 ?>
