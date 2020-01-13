@@ -6,6 +6,7 @@ namespace App;
 require 'vendor/autoload.php';
 
 use App\SQLiteInteract as SQLiteInteract;
+use \DOMDocument as DOMDocument;
 
 /**
  * cURL Functions
@@ -64,14 +65,15 @@ class CurlDataRetrieval {
     return $url;
   }
 
-  private function filterURLs($url) {
+  private function filterURLs($pageinfo) {
+    // $validurl will determine if we carry on processing url
     $validurl = 1;
     // Only evaluate links which are valid http codes (filter after scanning & before writing)
     if ($pageinfo['http_code'] != 200) {
       $validurl = 0;
     }
     // Only evaluate musement.com links
-    if (substr(parse_url($url, PHP_URL_HOST), -12) != 'musement.com') {
+    if (substr(parse_url($pageinfo['url'], PHP_URL_HOST), -12) != 'musement.com') {
       $validurl = 0;
     }
 
@@ -117,7 +119,7 @@ class CurlDataRetrieval {
 
   // pass html content from web page and return an array of links
   // adapted from example on PHP.NET/manual given by Jay Gilford
-  private function parseContent($content) {
+  private function parseContent($content, $sqlite) {
     // Create a new DOM Document to hold our webpage structure
     $xml = new DOMDocument();
     // set error level
@@ -137,6 +139,45 @@ class CurlDataRetrieval {
     return $view;
   }
 
+  // Determines if the URL related to a "top 20" city and returns var determining validity
+  private function isTop20City($url, $sqlite) {
+    // $validurl will determine if we carry on processing url
+    $validurl = 1;
+    // it's a city-related page. Find the city it relates to.
+    // remove everything after the second element in the url path to see if it is a city page or the child of city page
+    $path = parse_url($url, PHP_URL_PATH);
+    $city = strstr(substr($path, 4), '/', true);
+    // rebuild the url using the schema, the host, and the parsed path. $cityurl will be in the form of https://www.musement.com/<locale>/<city>/
+    $cityurl = parse_url($url, PHP_URL_SCHEME).'://'.parse_url($url, PHP_URL_HOST).substr($path, 0,  4).$city.'/';
+    // retrieve top 20 city list from API
+    $citydata = $sqlite->retrieveCities();
+
+    // is the city one of the top 20 cities from the API?
+    if (!array_search($cityurl, array_column($citydata, 'url'))) {
+      // UPDATE link list to 'worked' and set to 'not include' for non-top 20 city
+      $sqlite->setLinkToWorked($url);
+      $sqlite->setLinkToNotInclude($url);
+      $validurl = 0;
+    }
+    return $validurl;
+  }
+
+  // Determines if the URL is a "top 20" activity / event and returns var determining validity
+  private function isTop20Event($url, $sqlite) {
+    // $validurl will determine if we carry on processing url
+    $validurl = 1;
+    // retrieve top 20 event list from API
+    $eventdata = $sqlite->retrieveEvents();
+
+    // is the city one of the top 20 cities from the API?
+    if (!array_search($url, array_column($eventdata, 'url'))) {
+      // UPDATE link list to 'worked' and set to 'not include' for non-top 20 city
+      $sqlite->setLinkToWorked($url);
+      $sqlite->setLinkToNotInclude($url);
+      $validurl = 0;
+    }
+    return $validurl;
+  }
 
   // uses a list of links found and a list of previously scanned urls to determine which urls to scan for new links
   // three levels of filtering:
@@ -147,50 +188,45 @@ class CurlDataRetrieval {
   public function scanURL($url, $sqlite) {
     // use curl to get page data
     $res = $this->getPageData($url);
+    echo $url . ' scanned.<br />';
     // separate into page content (for links) and page info (for sitemap)
     $pageinfo = $res['info'];
     $pagecontent = $res['content'];
 
     // filter out unwanted pages
-    if ($this->filterURLs($url) == 0) {
-      // UPDATE link list to worked for filtered URL
-      $sqlite->setLinkToWorked($url);
-      continue;
-    }
+    $validurl = $this->filterURLs($pageinfo);
+
+    echo $url . ' filtered. Valid: '.$validurl.'<br />';
 
     // Send page content to function to return only information which will be used
     // Parse HTML. Insert all links found into links table, and return the page type (view)
     $viewtype = $this->parseContent($pagecontent, $sqlite);
+    echo $url . ' parsed.<br />';
 
-    echo '<br />View type = ', $viewtype;
-
+    // Now we have the links, check to see if it's a city-related page.
     // city, event, attraction, editorial
-
-    // Now we have the links, check to see if it's a city-related page. Then to see if it's (related to) a top 20 city.
     if (in_array($viewtype, array('city', 'event', 'attraction', 'editorial'))) {
-      // it's a city-related page. Find the city it relates to.
-      // remove everything after the second element in the url path to see if it is a city page or the child of city page
-      $path = parse_url($url, PHP_URL_PATH);
-      $city = strstr(substr($path, 4), '/', true);
-      // rebuild the url using the schema, the host, and the parsed path
-      $cityurl = parse_url($url, PHP_URL_SCHEME).'://'.parse_url($url, PHP_URL_HOST).substr($path, 0,  4).$city.'/';
-      // TO DO - set locale (testing only, will need to be set properly elsewhere)
-      $locale = 'es-ES';
-      // retrieve top 20 city list from API
-      $citylist = getCityData($locale);
-
-      // is the city one of the top 20 cities from the API?
-      if (!in_array($cityurl, $citylist['urls'])) {
-        echo '<br />This url is not in the top 20 cities - ', $cityurl;
-        continue;
+      //  Now see if it's (related to) a top 20 city.
+      $validurl = $this->isTop20City($url, $sqlite);
+      echo $url . ' cityfiltered. Valid: '.$validurl.'<br />';
+      //  We know it's related to a top 20 city, now see if it's a top 20 activity / event.
+      if ($viewtype == 'event') {
+        $validurl = $this->isTop20Event($url, $sqlite);
+        echo $url . ' activityfiltered. Valid: '.$validurl.'<br />';
       }
-
-      // Write to sitemap
-      writeData($pageinfo);
-
-
     }
-    return array('newlinks'=>$linksfound, 'written'=>$workedurls);
+
+
+    // Decide what to do with the links
+    // The url has been scanned, so set url to 'worked'
+    $sqlite->setLinkToWorked($url);
+    // was the url valid? If so, update the view
+    if ($validurl == 1) {
+      $sqlite->setLinkPageType($url, $viewtype);
+    } else {
+      // otherwise update the include column to 0
+      $sqlite->setLinkToNotInclude($url);
+    }
   }
 
 

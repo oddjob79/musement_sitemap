@@ -38,24 +38,23 @@ class SQLiteInteract {
    * create tables
    */
   public function createTables() {
-      $commands = ['CREATE TABLE IF NOT EXISTS cities (
-                      id INTEGER PRIMARY KEY,
-                      name TEXT NOT NULL,
-                      url TEXT NOT NULL
-                    )',
+      $commands = [
+          'CREATE TABLE IF NOT EXISTS cities (
+                  id INTEGER PRIMARY KEY,
+                  name TEXT NOT NULL,
+                  url TEXT NOT NULL)',
+
           'CREATE TABLE IF NOT EXISTS events (
                   id INTEGER PRIMARY KEY AUTOINCREMENT,
                   uuid TEXT NOT NULL,
                   title TEXT NOT NULL,
                   url TEXT NOT NULL,
                   city_id INTEGER NOT NULL)',
-          'CREATE TABLE IF NOT EXISTS types (
-                  id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  type TEXT NOT NULL)',
+
           'CREATE TABLE IF NOT EXISTS links (
                   id INTEGER PRIMARY KEY AUTOINCREMENT,
                   url TEXT NOT NULL UNIQUE,
-                  type INTEGER NOT NULL DEFAULT 0,
+                  type TEXT,
                   include INTEGER NOT NULL DEFAULT 1,
                   worked INTEGER NOT NULL DEFAULT 0)'
           ];
@@ -178,42 +177,23 @@ class SQLiteInteract {
     return $eventdata;
   }
 
-  private function insertTypes() {
-    $typedata = array('unknown', 'city', 'event', 'attraction', 'editiorial', 'external', 'other');
-    // run through each city array to insert to db
-    foreach ($typedata as $type) {
-      // prepare sql statement
-      $sql = 'INSERT INTO types(type) VALUES(:type)';
-      $stmt = $this->pdo->prepare($sql);
-      try {
-        // execute sql insert statement
-        $stmt->execute([':type' => $type]);
-      } catch (Exception $e) {
-        echo 'Error writing to DB: ',  $e->getMessage(), "\n";
-      }
-    }
-  }
-
   public function seedData() {
     $this->insertCities();
     $this->insertEvents();
-    $this->insertTypes();
   }
 
   // takes $urls array and uses data to update the links table
-  public function insertLink($urls) {
-    foreach ($urls as $url) {
-      // check link exists in the links table and continue if not
-      if (!$this->checkLinkExists($url)) {
-        // prepare sql statement
-        $sql = 'INSERT INTO links(url) VALUES(:url)';
-        $stmt = $this->pdo->prepare($sql);
-        try {
-          // execute sql insert statement
-          $stmt->execute([':url' => $url]);
-        } catch (Exception $e) {
-          echo 'Error writing to DB: ',  $e->getMessage(), "\n";
-        }
+  public function insertLink($url) {
+    // check link exists in the links table and continue if not
+    if (!$this->checkLinkExists($url)) {
+      // prepare sql statement
+      $sql = 'INSERT INTO links(url) VALUES(:url)';
+      $stmt = $this->pdo->prepare($sql);
+      try {
+        // execute sql insert statement
+        $stmt->execute([':url' => $url]);
+      } catch (Exception $e) {
+        echo 'Error writing to DB: ',  $e->getMessage(), "\n";
       }
     }
   }
@@ -264,7 +244,6 @@ class SQLiteInteract {
   public function setLinkToWorked($url) {
     // Prepare SQL Update Statement for setting link to 'worked'
     $stmt = $this->pdo->prepare('UPDATE links SET worked = 1 where url = :url');
-
     // try to execute sql update statement
     try {
       $stmt->execute([':url' => $url]);
@@ -273,22 +252,30 @@ class SQLiteInteract {
     }
   }
 
-// NOT NEEDED I THINK
-  // public function checkLinksToWork() {
-  //   // send sql query to db
-  //   try {
-  //     $stmt = $this->pdo->query('SELECT id FROM links WHERE worked = 0');
-  //   } catch (Exception $e) {
-  //     echo 'Error querying DB: ',  $e->getMessage(), "\n";
-  //   }
-  //
-  //   if ($stmt->fetch(\PDO::FETCH_ASSOC)) {
-  //     return 1;
-  //   } else {
-  //     return 0;
-  //   }
-  //   // return $stmt->fetch(\PDO::FETCH_ASSOC);
-  // }
+  public function setLinkToNotInclude($url) {
+    // Prepare SQL Update Statement for setting link to 'not included'
+    $stmt = $this->pdo->prepare('UPDATE links SET include = 0 where url = :url');
+    // try to execute sql update statement
+    try {
+      $stmt->execute([':url' => $url]);
+    } catch (Exception $e) {
+      echo 'Error querying DB: ',  $e->getMessage(), "\n";
+    }
+  }
+
+  public function setLinkPageType($url, $pagetype='unknown') {
+    // Prepare SQL Update Statement for setting link to 'not included'
+    $stmt = $this->pdo->prepare('UPDATE links SET type = :pagetype where url = :url');
+    try {
+      // execute sql update statement
+      $stmt->execute([
+                  ':url' => $url,
+                  ':pagetype' => $pagetype
+                  ]);
+    } catch (Exception $e) {
+      echo 'Error writing to DB: ',  $e->getMessage(), "\n";
+    }
+  }
 
 }
 ?>
