@@ -198,10 +198,26 @@ class SQLiteInteract {
     }
   }
 
+  // takes $urls array and uses data to update the links table
+  public function insertLinks($urls) {
+    foreach ($urls as $url) {
+      // prepare sql statement
+      $sql = 'INSERT INTO links(url) VALUES(:url)';
+      $stmt = $this->pdo->prepare($sql);
+      try {
+        // execute sql insert statement
+        $stmt->execute([':url' => $url]);
+      } catch (Exception $e) {
+        echo 'Error writing to DB: ',  $e->getMessage(), "\n";
+      }
+    }
+  }
+
+
   // returns all UNWORKED links found from site as array
   public function retrieveLinks() {
     // prepare select statement
-    $stmt = $this->pdo->query('SELECT id, url, type, include, worked FROM links where worked = 0');
+    $stmt = $this->pdo->query('SELECT id, url, type, include, worked FROM links');
     // create empty $eventdata object
     $linkdata = [];
     // fetch data from statement
@@ -254,7 +270,7 @@ class SQLiteInteract {
 
   public function setLinkToNotInclude($url) {
     // Prepare SQL Update Statement for setting link to 'not included'
-    $stmt = $this->pdo->prepare('UPDATE links SET include = 0 where url = :url');
+    $stmt = $this->pdo->prepare('UPDATE links SET include = 0, worked = 1 where url = :url');
     // try to execute sql update statement
     try {
       $stmt->execute([':url' => $url]);
@@ -265,7 +281,7 @@ class SQLiteInteract {
 
   public function setLinkPageType($url, $pagetype='unknown') {
     // Prepare SQL Update Statement for setting link to 'not included'
-    $stmt = $this->pdo->prepare('UPDATE links SET type = :pagetype where url = :url');
+    $stmt = $this->pdo->prepare('UPDATE links SET type = :pagetype, worked = 1 where url = :url');
     try {
       // execute sql update statement
       $stmt->execute([

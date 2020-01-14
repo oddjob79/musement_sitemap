@@ -36,6 +36,33 @@ $scan = new CurlDataRetrieval();
 
 // DO NOT RUN WITHOUT ADDITIONAL CHECKS - ADD DEBUGGING TO CHECK IT IS REQUERYING THE TABLE - ADD LIMITER TO STOP IT GOING MENTAL
 $linksfound = $sqlite->retrieveLinks();
+
+// Successful test to see if there are unworked urls in the $linksfound array
+// if (array_search('0', array_column($linksfound, 'worked')) !== false) {
+//   echo 'There are unworked urls';
+// }
+//
+// echo '<br />end linksfound = '. end($linksfound)['url'];
+$i=0; $x=0;
+while ($x<5 && $i<5 && array_search('0', array_column($linksfound, 'worked')) !== false) {
+  $x++;
+  $lastlink = end($linksfound)['url'];
+  foreach ($linksfound as $link) {
+    $i++;
+    // filter out urls we don't need / want to scan
+    if ($scan->preScanFilter($link)!=0) {
+      error_log('Processing URL: '.$link['url'], 0);
+      // scan & process
+      $scan->scanURL($link['url'], $sqlite);
+    }
+    if ($link['url'] == $lastlink) {
+      error_log('Last URL: '.$link['url'], 0);
+      $linksfound = $sqlite->retrieveLinks();
+    }
+  }
+}
+
+
 // while ($linksfound = $sqlite->retrieveLinks() && $i<5) {
 // while ($linksfound) {
 //   var_dump($linksfound);
@@ -50,17 +77,22 @@ $linksfound = $sqlite->retrieveLinks();
 //   }
 // }
 
-error_log('first instance of linksfound = '.var_dump($linksfound), 0);
 
-foreach ($linksfound as $link) {
-  error_log('This is the url sent for processing: '.$link['url'], 0);
-  // scan & process
-  $scan->scanURL($link['url'], $sqlite);
-}
 
-$morelinksfound = $sqlite->retrieveLinks();
 
-error_log('second instance of linksfound = '.var_dump($morelinksfound), 0);
+// error_log('first instance of linksfound = '.var_dump($linksfound), 0);
+//
+// foreach ($linksfound as $link) {
+//   error_log('This is the url sent for processing: '.$link['url'], 0);
+//   // scan & process
+//   $scan->scanURL($link['url'], $sqlite);
+// }
+//
+// $morelinksfound = $sqlite->retrieveLinks();
+//
+// error_log('second instance of linksfound = '.var_dump($morelinksfound), 0);
+
+
 
 // foreach ($linksfound as $link) {
 //   error_log('This is the url sent for processing: '.$link['url'], 0);

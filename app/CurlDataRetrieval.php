@@ -65,6 +65,42 @@ class CurlDataRetrieval {
     return $url;
   }
 
+  // filter run after scanning
+  private function preScanFilter($url) {
+    // $validurl will determine if we carry on processing url
+    $validurl = 1;
+    // Only evaluate musement.com links
+    if (substr(parse_url($url, PHP_URL_HOST), -12) != 'musement.com') {
+      $validurl = 0;
+    }
+
+    // filter out pages specified in robots.txt
+    // use curl to get robots.txt info
+    $res = getPageData('https://www.musement.com/robots.txt');
+    // build array containing disallowed pages
+    $robarr = explode("Disallow: /*", str_replace("\n", "", $res['content']));
+    // remove the other text from robots.txt from array
+    array_shift($robarr);
+    // var_dump($arr);
+    // find the path of the url being checked
+    $path = parse_url($url, PHP_URL_PATH);
+    // does anything in the robots array match the end of the url?
+    foreach ($robarr as $roburl) {
+      if (substr($path, 0-strlen($roburl)) == $roburl) {
+        $validurl = 0;
+      }
+    }
+
+    // Filter out unwanted locales
+    $localearr = array('es','it','fr');
+    if (!in_array(substr($path, 1, 2), $localearr)) {
+      $validurl = 0;
+    }
+
+    return $validurl;
+  }
+
+  // filter run after scanning
   private function filterURLs($pageinfo) {
     // $validurl will determine if we carry on processing url
     $validurl = 1;
@@ -72,33 +108,28 @@ class CurlDataRetrieval {
     if ($pageinfo['http_code'] != 200) {
       $validurl = 0;
     }
-    // Only evaluate musement.com links
-    if (substr(parse_url($pageinfo['url'], PHP_URL_HOST), -12) != 'musement.com') {
-      $validurl = 0;
-    }
-
-    // Add filter for unwanted locales
 
     return $validurl;
   }
 
-  // Find all links on the HTML Page and add them to the links table
-  private function scrapeLinks($xml, $sqlite) {
+  // Find all links on the HTML Page and return array of 'new links'
+  // private function scrapeLinks($xml, $sqlite) {
+  private function scrapeLinks($xml) {
+    $newlinks = array();
     // Loop through each <a> tag in the dom and add it to the links table
     foreach($xml->getElementsByTagName('a') as $link) {
       // if link is a mailto link or a tel link - ignore it
       if (substr($link->getAttribute('href'), 0, 7) != 'mailto:' && substr($link->getAttribute('href'), 0, 4) != 'tel:') {
+        error_log('NEW LINK FOUND = '.$link->getAttribute('href'), 0);
         // make sure link is absolute
         $url = $this->relativeToAbsoluteLink($link->getAttribute('href'));
-        $i=0;
-        while ($i<5) {
-          $i++;
-          // insert url into db
-          $sqlite->insertLink($url);
-        }
-
+        error_log('relative link created for: '.$url);
+        // // insert url into db
+        // $sqlite->insertLink($url);
+        array_push($newlinks, $url);
       }
     }
+    return $newlinks;
   }
 
   // receives $xml object and returns the 'view' - what type of page it is
@@ -140,7 +171,15 @@ class CurlDataRetrieval {
     libxml_use_internal_errors($internalErrors);
 
     // scrape the HTML Page for links and add them to the links table
-    $this->scrapeLinks($xml, $sqlite);
+    // $this->scrapeLinks($xml, $sqlite);
+    $newlinks = $this->scrapeLinks($xml);
+    // retrieve list of links already in table, and return the url column only
+    $currlinks = array_column($sqlite->retrieveLinks(), 'url');
+    // return only urls not already in links table
+    $newlinks = array_diff($newlinks, $currlinks);
+
+    // insert links as array
+    $sqlite->insertLinks($newlinks);
 
     // parses the html for the view / page type
     $view = $this->scrapeView($xml);
@@ -165,10 +204,12 @@ class CurlDataRetrieval {
     // is the city one of the top 20 cities from the API?
     if (!array_search($cityurl, array_column($citydata, 'url'))) {
       // UPDATE link list to 'worked' and set to 'not include' for non-top 20 city
-      $sqlite->setLinkToWorked($url);
-      $sqlite->setLinkToNotInclude($url);
+      // $sqlite->setLinkToWorked($url);
+      // $sqlite->setLinkToNotInclude($url);
       $validurl = 0;
     }
+    error_log($url.'city function, validurl = '.$validurl);
+
     return $validurl;
   }
 
@@ -182,8 +223,8 @@ class CurlDataRetrieval {
     // is the city one of the top 20 cities from the API?
     if (!array_search($url, array_column($eventdata, 'url'))) {
       // UPDATE link list to 'worked' and set to 'not include' for non-top 20 city
-      $sqlite->setLinkToWorked($url);
-      $sqlite->setLinkToNotInclude($url);
+      // $sqlite->setLinkToWorked($url);
+      // $sqlite->setLinkToNotInclude($url);
       $validurl = 0;
     }
     return $validurl;
@@ -210,6 +251,8 @@ class CurlDataRetrieval {
 
     // Send page content to function to return only information which will be used
     // Parse HTML. Insert all links found into links table, and return the page type (view)
+    // define $viewtype as empty string as default
+    $viewtype = '';
     if ($validurl == 1) {
       $viewtype = $this->parseContent($pagecontent, $sqlite);
       error_log($url . ' parsed.<br />', 0);
@@ -228,12 +271,13 @@ class CurlDataRetrieval {
       }
     }
 
+    // Refactor to use only one update sql query
 
     // Decide what to do with the links
     // The url has been scanned, so set url to 'worked'
-    $sqlite->setLinkToWorked($url);
-    // was the url valid? If so, update the view
-    if ($validurl == 1) {
+    // $sqlite->setLinkToWorked($url);
+    // was the url valid? Is there a view specified in the page state? If so, update the view
+    if ($validurl == 1 && $viewtype != '') {
       $sqlite->setLinkPageType($url, $viewtype);
     } else {
       // otherwise update the include column to 0

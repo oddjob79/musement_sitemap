@@ -258,18 +258,6 @@
             echo '<br />This url is not in the top 20 cities - ', $cityurl;
             continue;
           }
-          // chekc if activities are in top 20 by city. If it's an event
-          // if ($viewtype == 'event') {
-          //   foreach ($citylist['ids'] as $cityid) {
-          //     $eventlistbycityurl = 'https://api.musement.com/api/v3/cities/'.$cityid.'/activities?limit=20';
-          //     $topevents = getAPIData($eventlistbycityurl, $locale);
-          //     if (!in_array($url, $topevents))
-          // }
-        // }
-
-
-
-
         }
 
         // Write to sitemap
@@ -288,10 +276,30 @@
   // $target = "http://books.toscrape.com/";
   // $target = "https://www.php.net/manual/en/function.explode.php"; // example url with last modified time in header
 
-  // // TEST getting page data
-  // $res = getPageData($target);
-  // echo $res['content'];
-  // exit;
+  // TEST getting page data
+  $res = getPageData('https://www.musement.com/robots.txt');
+  echo $res['content'];
+  $arr = explode("Disallow: /*", str_replace("\n", "", $res['content']));
+  array_shift($arr);
+  var_dump($arr);
+  $path = parse_url('https://www.musement.com/de/search?city=149', PHP_URL_PATH);
+  echo '<br />'.$path;
+  // does the end of the url match anything in the array?
+  // does anything in the array match the end of the url?
+  foreach ($arr as $parurl) {
+    if (substr($path, 0-strlen($parurl)) == $parurl) {
+      echo '<br />match found<br />';
+    }
+  }
+
+  // Add filter for unwanted locales
+  $localearr = array('es','it','fr');
+  echo '<br />'.substr($path, 1, 2);
+  if (!in_array(substr($path, 1, 2), $localearr)) {
+    echo 'wrong locale';
+  }
+
+  exit;
 
   $linksfound = array($target);
   $workedurls = array();
