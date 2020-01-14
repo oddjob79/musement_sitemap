@@ -44,29 +44,38 @@ $linksfound = $sqlite->retrieveLinks();
 // }
 //
 // echo '<br />end linksfound = '. end($linksfound)['url'];
+
+set_time_limit(90);
+
 $x=0;
 // while there are urls in the links table with worked == 0
-while ($x<4 && array_search('0', array_column($linksfound, 'worked')) !== false) {
+while ($x<2 && array_search('0', array_column($linksfound, 'worked')) !== false) {
   $x++;
+
   // sort array by length of url - we should get cities first and can prefilter based on city
   usort($linksfound, function($a, $b) {
       return strlen($a['url']) - strlen($b['url']);
   });
+
   // set the $lastlink var to the value of the last url in the array
   $lastlink = end($linksfound)['url'];
   foreach ($linksfound as $link) {
-    // Only look at urls that have not been worked already
-    if ($link['worked'] == 0) {
-      // filter out urls we don't need / want to scan
-      if ($scan->preScanFilter($link['url'], $sqlite) != 0) {
-        error_log('Processing URL: '.$link['url'].' $x = '.$x, 0);
-        // scan & process
-        $scan->scanURL($link['url'], $sqlite);
-      }
+
+    // filter out urls we don't need / want to scan and previously worked urls
+    if ($scan->preScanFilter($link['url'], $sqlite) != 0 && $link['worked'] == 0) {
+      error_log('Processing URL: '.$link['url'].' $x = '.$x, 0);
+      // scan & process
+      $scan->scanURL($link['url'], $sqlite);
     }
+
+    // if this is the last link in the array, rebuild the array
     if ($link['url'] == $lastlink) {
       error_log('Last URL: '.$link['url'], 0);
       $linksfound = $sqlite->retrieveLinks();
+
+      var_dump($linksfound);
+      exit;
+
     }
   }
 }

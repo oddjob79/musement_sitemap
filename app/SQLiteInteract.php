@@ -59,6 +59,9 @@ class SQLiteInteract {
                   worked INTEGER NOT NULL DEFAULT 0)',
           'CREATE TABLE IF NOT EXISTS city_rejects (
                   id INTEGER PRIMARY KEY,
+                  url TEXT NOT NULL)',
+          'CREATE TABLE IF NOT EXISTS robot_pages (
+                  id INTEGER PRIMARY KEY,
                   url TEXT NOT NULL)'
           ];
       // execute the sql commands to create new tables
@@ -183,6 +186,7 @@ class SQLiteInteract {
   public function seedData() {
     $this->insertCities();
     $this->insertEvents();
+    $this->insertRobotPages();
   }
 
   // takes $urls array and uses data to update the links table
@@ -327,6 +331,48 @@ class SQLiteInteract {
     }
     return $cityrejects;
   }
+
+  public function insertRobotPages($url) {
+    // use curl to get robots.txt info
+    $res = (new CurlDataRetrieval())->getPageData('https://www.musement.com/robots.txt');
+    // build array containing disallowed pages
+    $robarr = explode("Disallow: /*", str_replace("\n", "", $res['content']));
+    // remove the other text from robots.txt from array
+    array_shift($robarr);
+
+    foreach ($robarr as $url) {
+      // prepare sql statement
+      $sql = 'INSERT INTO robot_pages(url) VALUES(:url)';
+      $stmt = $this->pdo->prepare($sql);
+      try {
+        // execute sql insert statement
+        $stmt->execute([':url' => $url]);
+      } catch (Exception $e) {
+        echo 'Error writing to DB: ',  $e->getMessage(), "\n";
+      }
+    }
+  }
+
+  public function retrieveRobotPages() {
+    // prepare select statement
+    $stmt = $this->pdo->query('SELECT id, url FROM robot_pages');
+    // create empty $citydata object
+    $cityrejects = [];
+    // fetch data from statement
+    try {
+      while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+        // update with rows of data
+        $cityrejects[] = [
+          'id' => $row['id'],
+          'url' => $row['url']
+        ];
+      }
+    } catch (Exception $e) {
+      echo 'Error retrieving data: ',  $e->getMessage(), "\n";
+    }
+    return $robotpages;
+  }
+
 
 }
 ?>
