@@ -65,18 +65,31 @@ class CurlDataRetrieval {
     return $url;
   }
 
-  // filter run after scanning
-  private function preScanFilter($url) {
+  private function removeNonMusementLinks($url) {
+    $locale = 'es';
     // $validurl will determine if we carry on processing url
     $validurl = 1;
     // Only evaluate musement.com links
-    if (substr(parse_url($url, PHP_URL_HOST), -12) != 'musement.com') {
+    if (parse_url($url, PHP_URL_HOST) != 'www.musement.com') {
+      $validurl = 0;
+    }
+    if (substr(parse_url($url, PHP_URL_PATH), 1, 2) != $locale) {
       $validurl = 0;
     }
 
+    return $validurl;
+  }
+
+  // filter run after scanning
+  public function preScanFilter($url, $sqlite) {
+    // $validurl will determine if we carry on processing url
+    $validurl = 1;
+    // filter out non www.musement.com links
+    $validurl = $this->removeNonMusementLinks($url);
+
     // filter out pages specified in robots.txt
     // use curl to get robots.txt info
-    $res = getPageData('https://www.musement.com/robots.txt');
+    $res = $this->getPageData('https://www.musement.com/robots.txt');
     // build array containing disallowed pages
     $robarr = explode("Disallow: /*", str_replace("\n", "", $res['content']));
     // remove the other text from robots.txt from array
@@ -97,6 +110,16 @@ class CurlDataRetrieval {
       $validurl = 0;
     }
 
+    // filter out any previously rejected (non-top 20) cities
+    // return only the city portion of the url
+    $cityurl = $this->buildCityURL($url);
+    // retrieve previously rejected city urls from db
+    $cityrejects = $sqlite->retrieveCityRejects();
+    // check to see if the $cityurl is in the $cityrejects list and if so, set the url to invalid
+    if (array_search($cityurl, array_column($cityrejects, 'url'))) {
+      $validurl = 0;
+    }
+
     return $validurl;
   }
 
@@ -104,6 +127,10 @@ class CurlDataRetrieval {
   private function filterURLs($pageinfo) {
     // $validurl will determine if we carry on processing url
     $validurl = 1;
+    // filter out non www.musement.com links
+    $validurl = $this->removeNonMusementLinks($pageinfo['url']);
+
+
     // Only evaluate links which are valid http codes (filter after scanning & before writing)
     if ($pageinfo['http_code'] != 200) {
       $validurl = 0;
@@ -120,10 +147,10 @@ class CurlDataRetrieval {
     foreach($xml->getElementsByTagName('a') as $link) {
       // if link is a mailto link or a tel link - ignore it
       if (substr($link->getAttribute('href'), 0, 7) != 'mailto:' && substr($link->getAttribute('href'), 0, 4) != 'tel:') {
-        error_log('NEW LINK FOUND = '.$link->getAttribute('href'), 0);
+        // error_log('NEW LINK FOUND = '.$link->getAttribute('href'), 0);
         // make sure link is absolute
         $url = $this->relativeToAbsoluteLink($link->getAttribute('href'));
-        error_log('relative link created for: '.$url);
+        // error_log('relative link created for: '.$url);
         // // insert url into db
         // $sqlite->insertLink($url);
         array_push($newlinks, $url);
@@ -177,7 +204,6 @@ class CurlDataRetrieval {
     $currlinks = array_column($sqlite->retrieveLinks(), 'url');
     // return only urls not already in links table
     $newlinks = array_diff($newlinks, $currlinks);
-
     // insert links as array
     $sqlite->insertLinks($newlinks);
 
@@ -188,27 +214,33 @@ class CurlDataRetrieval {
     return $view;
   }
 
-  // Determines if the URL related to a "top 20" city and returns var determining validity
-  private function isTop20City($url, $sqlite) {
-    // $validurl will determine if we carry on processing url
-    $validurl = 1;
-    // it's a city-related page. Find the city it relates to.
+  private function buildCityURL($url) {
     // remove everything after the second element in the url path to see if it is a city page or the child of city page
     $path = parse_url($url, PHP_URL_PATH);
     $city = strstr(substr($path, 4), '/', true);
     // rebuild the url using the schema, the host, and the parsed path. $cityurl will be in the form of https://www.musement.com/<locale>/<city>/
     $cityurl = parse_url($url, PHP_URL_SCHEME).'://'.parse_url($url, PHP_URL_HOST).substr($path, 0,  4).$city.'/';
+
+    return $cityurl;
+  }
+
+  // Determines if the URL related to a "top 20" city and returns var determining validity
+  private function isTop20City($url, $sqlite) {
+    // $validurl will determine if we carry on processing url
+    $validurl = 1;
+    // it's a city-related page. Find the city it relates to.
+    $cityurl = $this->buildCityURL($url);
     // retrieve top 20 city list from API
     $citydata = $sqlite->retrieveCities();
 
     // is the city one of the top 20 cities from the API?
     if (!array_search($cityurl, array_column($citydata, 'url'))) {
-      // UPDATE link list to 'worked' and set to 'not include' for non-top 20 city
-      // $sqlite->setLinkToWorked($url);
-      // $sqlite->setLinkToNotInclude($url);
+      // set $validurl flag to false
       $validurl = 0;
+      // write url to city_rejects table so any url relating to this city will be ignored in future
+      $sqlite->insertCityReject($url);
     }
-    error_log($url.'city function, validurl = '.$validurl);
+    // error_log($url.'city function, validurl = '.$validurl);
 
     return $validurl;
   }
@@ -239,7 +271,7 @@ class CurlDataRetrieval {
   public function scanURL($url, $sqlite) {
     // use curl to get page data
     $res = $this->getPageData($url);
-    error_log($url . ' scanned.<br />', 0);
+    // error_log($url . ' scanned.<br />', 0);
     // separate into page content (for links) and page info (for sitemap)
     $pageinfo = $res['info'];
     $pagecontent = $res['content'];
@@ -247,7 +279,7 @@ class CurlDataRetrieval {
     // filter out unwanted pages (html errors and non musement pages)
     $validurl = $this->filterURLs($pageinfo);
 
-    error_log($url . ' filtered. Valid: '.$validurl.'<br />', 0);
+    // error_log($url . ' filtered. Valid: '.$validurl.'<br />', 0);
 
     // Send page content to function to return only information which will be used
     // Parse HTML. Insert all links found into links table, and return the page type (view)
@@ -255,7 +287,7 @@ class CurlDataRetrieval {
     $viewtype = '';
     if ($validurl == 1) {
       $viewtype = $this->parseContent($pagecontent, $sqlite);
-      error_log($url . ' parsed.<br />', 0);
+      // error_log($url . ' parsed.<br />', 0);
     }
 
     // Now we have the links, check to see if it's a city-related page.
@@ -263,11 +295,11 @@ class CurlDataRetrieval {
     if (in_array($viewtype, array('city', 'event', 'attraction', 'editorial'))) {
       //  Now see if it's (related to) a top 20 city.
       $validurl = $this->isTop20City($url, $sqlite);
-      error_log($url . ' cityfiltered. Valid: '.$validurl.'<br />', 0);
+      // error_log($url . ' cityfiltered. Valid: '.$validurl.'<br />', 0);
       //  We know it's related to a top 20 city, now see if it's a top 20 activity / event.
       if ($viewtype == 'event') {
         $validurl = $this->isTop20Event($url, $sqlite);
-        error_log($url . ' activityfiltered. Valid: '.$validurl.'<br />', 0);
+        // error_log($url . ' activityfiltered. Valid: '.$validurl.'<br />', 0);
       }
     }
 
@@ -277,10 +309,12 @@ class CurlDataRetrieval {
     // The url has been scanned, so set url to 'worked'
     // $sqlite->setLinkToWorked($url);
     // was the url valid? Is there a view specified in the page state? If so, update the view
-    if ($validurl == 1 && $viewtype != '') {
+    if ($validurl == 1) {
+      error_log('VALID url and updated: '.$url, 0);
       $sqlite->setLinkPageType($url, $viewtype);
     } else {
       // otherwise update the include column to 0
+      error_log('INVALID url and updated: '.$url, 0);
       $sqlite->setLinkToNotInclude($url);
     }
   }

@@ -37,23 +37,32 @@ $scan = new CurlDataRetrieval();
 // DO NOT RUN WITHOUT ADDITIONAL CHECKS - ADD DEBUGGING TO CHECK IT IS REQUERYING THE TABLE - ADD LIMITER TO STOP IT GOING MENTAL
 $linksfound = $sqlite->retrieveLinks();
 
+
 // Successful test to see if there are unworked urls in the $linksfound array
 // if (array_search('0', array_column($linksfound, 'worked')) !== false) {
 //   echo 'There are unworked urls';
 // }
 //
 // echo '<br />end linksfound = '. end($linksfound)['url'];
-$i=0; $x=0;
-while ($x<5 && $i<5 && array_search('0', array_column($linksfound, 'worked')) !== false) {
+$x=0;
+// while there are urls in the links table with worked == 0
+while ($x<4 && array_search('0', array_column($linksfound, 'worked')) !== false) {
   $x++;
+  // sort array by length of url - we should get cities first and can prefilter based on city
+  usort($linksfound, function($a, $b) {
+      return strlen($a['url']) - strlen($b['url']);
+  });
+  // set the $lastlink var to the value of the last url in the array
   $lastlink = end($linksfound)['url'];
   foreach ($linksfound as $link) {
-    $i++;
-    // filter out urls we don't need / want to scan
-    if ($scan->preScanFilter($link)!=0) {
-      error_log('Processing URL: '.$link['url'], 0);
-      // scan & process
-      $scan->scanURL($link['url'], $sqlite);
+    // Only look at urls that have not been worked already
+    if ($link['worked'] == 0) {
+      // filter out urls we don't need / want to scan
+      if ($scan->preScanFilter($link['url'], $sqlite) != 0) {
+        error_log('Processing URL: '.$link['url'].' $x = '.$x, 0);
+        // scan & process
+        $scan->scanURL($link['url'], $sqlite);
+      }
     }
     if ($link['url'] == $lastlink) {
       error_log('Last URL: '.$link['url'], 0);
@@ -62,60 +71,6 @@ while ($x<5 && $i<5 && array_search('0', array_column($linksfound, 'worked')) !=
   }
 }
 
-
-// while ($linksfound = $sqlite->retrieveLinks() && $i<5) {
-// while ($linksfound) {
-//   var_dump($linksfound);
-//                 // // limit $linksfound for testing
-//                 // $linksfound = array_slice($linksfound, 0, 50);
-//
-//   // for each url in links table
-//   foreach ($linksfound as $link) {
-//     echo 'This is the url sent for processing: '.$link['url'];
-//     // scan & process
-//     $scan->scanURL($link['url'], $sqlite);
-//   }
-// }
-
-
-
-
-// error_log('first instance of linksfound = '.var_dump($linksfound), 0);
-//
-// foreach ($linksfound as $link) {
-//   error_log('This is the url sent for processing: '.$link['url'], 0);
-//   // scan & process
-//   $scan->scanURL($link['url'], $sqlite);
-// }
-//
-// $morelinksfound = $sqlite->retrieveLinks();
-//
-// error_log('second instance of linksfound = '.var_dump($morelinksfound), 0);
-
-
-
-// foreach ($linksfound as $link) {
-//   error_log('This is the url sent for processing: '.$link['url'], 0);
-//   // scan & process
-//   $scan->scanURL($link['url'], $sqlite);
-// }
-
-
-
-
-
-
-
-
-// // test output
-// $writelinks = $sqlite->retrieveLinks();
-// var_dump($linksfound);
-// foreach ($writelinks as $link) {
-//   var_dump($link);
-//   if (($link['worked']==1) && ($link['include']==1)) {
-//     echo 'Here\'s an outputted link: '. $link['url'];
-//   }
-// }
 
 
 

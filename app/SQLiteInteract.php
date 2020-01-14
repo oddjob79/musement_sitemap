@@ -56,7 +56,10 @@ class SQLiteInteract {
                   url TEXT NOT NULL UNIQUE,
                   type TEXT,
                   include INTEGER NOT NULL DEFAULT 1,
-                  worked INTEGER NOT NULL DEFAULT 0)'
+                  worked INTEGER NOT NULL DEFAULT 0)',
+          'CREATE TABLE IF NOT EXISTS city_rejects (
+                  id INTEGER PRIMARY KEY,
+                  url TEXT NOT NULL)'
           ];
       // execute the sql commands to create new tables
       foreach ($commands as $command) {
@@ -291,6 +294,38 @@ class SQLiteInteract {
     } catch (Exception $e) {
       echo 'Error writing to DB: ',  $e->getMessage(), "\n";
     }
+  }
+
+  public function insertCityReject($url) {
+    // prepare sql statement
+    $sql = 'INSERT INTO city_rejects(url) VALUES(:url)';
+    $stmt = $this->pdo->prepare($sql);
+    try {
+      // execute sql insert statement
+      $stmt->execute([':url' => $url]);
+    } catch (Exception $e) {
+      echo 'Error writing to DB: ',  $e->getMessage(), "\n";
+    }
+  }
+
+  public function retrieveCityRejects() {
+    // prepare select statement
+    $stmt = $this->pdo->query('SELECT id, url FROM city_rejects');
+    // create empty $citydata object
+    $cityrejects = [];
+    // fetch data from statement
+    try {
+      while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+        // update with rows of data
+        $cityrejects[] = [
+          'id' => $row['id'],
+          'url' => $row['url']
+        ];
+      }
+    } catch (Exception $e) {
+      echo 'Error retrieving data: ',  $e->getMessage(), "\n";
+    }
+    return $cityrejects;
   }
 
 }
