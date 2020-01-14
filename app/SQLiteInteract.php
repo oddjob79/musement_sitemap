@@ -332,7 +332,7 @@ class SQLiteInteract {
     return $cityrejects;
   }
 
-  public function insertRobotPages($url) {
+  public function insertRobotPages() {
     // use curl to get robots.txt info
     $res = (new CurlDataRetrieval())->getPageData('https://www.musement.com/robots.txt');
     // build array containing disallowed pages
@@ -357,12 +357,12 @@ class SQLiteInteract {
     // prepare select statement
     $stmt = $this->pdo->query('SELECT id, url FROM robot_pages');
     // create empty $citydata object
-    $cityrejects = [];
+    $robotpages = [];
     // fetch data from statement
     try {
       while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
         // update with rows of data
-        $cityrejects[] = [
+        $robotpages[] = [
           'id' => $row['id'],
           'url' => $row['url']
         ];

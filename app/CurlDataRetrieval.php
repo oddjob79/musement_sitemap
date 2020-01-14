@@ -77,23 +77,28 @@ class CurlDataRetrieval {
     return $validurl;
   }
 
-  private function robotPages($url) {
+  private function robotPages($url, $sqlite) {
     // $validurl will determine if we carry on processing url
     $validurl = 1;
 
     // filter out pages specified in robots.txt
     // use curl to get robots.txt info
-    $res = $this->getPageData('https://www.musement.com/robots.txt');
-    // build array containing disallowed pages
-    $robarr = explode("Disallow: /*", str_replace("\n", "", $res['content']));
-    // remove the other text from robots.txt from array
-    array_shift($robarr);
+    // $res = $this->getPageData('https://www.musement.com/robots.txt');
+    // // build array containing disallowed pages
+    // $robarr = explode("Disallow: /*", str_replace("\n", "", $res['content']));
+    // // remove the other text from robots.txt from array
+    // array_shift($robarr);
     // var_dump($arr);
+
     // find the path of the url being checked
     $path = parse_url($url, PHP_URL_PATH);
+    // fetch the robot array pages
+    $robarr = $sqlite->retrieveRobotPages();
+
     // does anything in the robots array match the end of the url?
     foreach ($robarr as $roburl) {
-      if (substr($path, 0-strlen($roburl)) == $roburl) {
+      // if the end of the url path equals the robot url
+      if (substr($path, 0-strlen($roburl['url'])) == $roburl['url']) {
         $validurl = 0;
       }
     }
@@ -111,7 +116,7 @@ class CurlDataRetrieval {
     };
 
     // filter out any pages included in the robots.txt file
-    if ($this->robotPages($url) == 0) {
+    if ($this->robotPages($url, $sqlite) == 0) {
       $validurl = 0;
     }
 
@@ -162,8 +167,8 @@ class CurlDataRetrieval {
         // $sqlite->insertLink($url);
 
         // perform preWriteChecks on link before submitting it for db write
-        if ($this->removeNonMusementLinks($url) == 1) {
-        // if ($this->removeNonMusementLinks($url) == 1 && $this->robotPages($url) == 1) {
+        // if ($this->removeNonMusementLinks($url) == 1) {
+        if ($this->removeNonMusementLinks($url) == 1 && $this->robotPages($url, $sqlite) == 1) {
           array_push($newlinks, $url);
         }
       }
