@@ -404,7 +404,7 @@ class CurlDataRetrieval {
     // extract path for ease of use
     $path = parse_url($url, PHP_URL_PATH);
     // if last 2 characters before the last slash are one of '-p', '-v', '-t', '-l', '-c'
-    if (in_array(substr($path, -3, 2), array('-p', '-v', '-t', '-l', '-c')) {
+    if (in_array(substr($path, -3, 2), array('-p', '-v', '-t', '-l', '-c'))) {
       // it's an "other" type of page
       $viewtype = 'other';
     }
@@ -416,7 +416,7 @@ class CurlDataRetrieval {
     // else if there are 3 slashes in the path and no dashes
     elseif (substr_count($path, '/') == 3 && !substr_count($path, '-')) {
       // It's a city
-      $view = 'city';
+      $viewtype = 'city';
     } else {
       $viewtype = 'unknown';
     }
@@ -449,7 +449,7 @@ class CurlDataRetrieval {
     if (strpos($url, 'sitemap-p')) {
       $smcitylinks = $this->scrapeSiteMapLinks($xml, $sqlite);
       $sqlite->insertLinks($smcitylinks);
-      error_log ($url. ' SiteMap Scraped', 0);
+      error_log ('SiteMap Scraped', 0);
     }
 
     $newlinks = $this->scrapeLinks($xml, $sqlite);
@@ -457,7 +457,7 @@ class CurlDataRetrieval {
     $currlinks = array_column($sqlite->retrieveLinks(), 'url');
     // return only urls not already in links table (in $newlinks but not in $currlinks)
     $newlinks = array_diff($newlinks, $currlinks);
-    error_log($url.' Links Scraped. '.count($newlinks).' new links found', 0);
+    error_log('Links Scraped. '.count($newlinks).' new link(s) found', 0);
 
     // New link filtering.
     // set $cityrejects as array containing previously rejected cities
@@ -486,7 +486,7 @@ class CurlDataRetrieval {
         }
       }
     }
-    error_log($url.' New Links Filtered. '.count($newlinks).' new links found', 0);
+    error_log('New Links Filtered. '.count($newlinks).' new link(s) remaining', 0);
 
     // insert links as array
     $sqlite->insertLinks($newlinks);

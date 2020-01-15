@@ -47,11 +47,11 @@ $linksfound = $sqlite->retrieveLinks();
 //
 // echo '<br />end linksfound = '. end($linksfound)['url'];
 
-set_time_limit(60);
+set_time_limit(120);
 
 $x=0;
 // while there are urls in the links table with worked == 0
-while ($x<2 && array_search('0', array_column($linksfound, 'worked')) !== false) {
+while ($x<3 && array_search('0', array_column($linksfound, 'worked')) !== false) {
   $x++;
 
   // sort array by length of url - we should get cities first and can prefilter based on city
@@ -69,7 +69,7 @@ while ($x<2 && array_search('0', array_column($linksfound, 'worked')) !== false)
     // added only for logging and counting
     if ($link['worked']==0) {
       $counter++;
-      error_log($link['url'].' Processing. Counter = '.$counter, 0);
+      error_log('Processing: '.$link['url'].'  Counter = '.$counter, 0);
       // filter out urls we don't need / want to scan and previously worked urls
       // if ($scan->preScanFilter($link['url'], $sqlite) != 0 && $link['worked'] == 0) {
         // error_log('Processing URL: '.$link['url'].' $x = '.$x, 0);
