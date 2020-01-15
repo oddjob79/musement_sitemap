@@ -69,12 +69,13 @@ while ($x<2 && array_search('0', array_column($linksfound, 'worked')) !== false)
     // added only for logging and counting
     if ($link['worked']==0) {
       $counter++;
-      error_log('Found URL: '.$link['url'].' counter = '.$counter, 0);
+      error_log($link['url'].' Processing. Counter = '.$counter, 0);
       // filter out urls we don't need / want to scan and previously worked urls
       // if ($scan->preScanFilter($link['url'], $sqlite) != 0 && $link['worked'] == 0) {
         // error_log('Processing URL: '.$link['url'].' $x = '.$x, 0);
         // scan & process
         $scan->scanURL($link['url'], $sqlite);
+        error_log($link['url'].' Scanning complete.');
       // }
 
     }

@@ -210,9 +210,19 @@ class CurlDataRetrieval {
       $url = $this->relativeToAbsoluteLink($link->getAttribute('href'));
 
       // perform preWriteChecks on link before submitting it for db write
-      if ($this->removeNonMusementLinks($url) == 1 && $this->robotPages($url, $sqlite) == 1) {
-        array_push($newlinks, $url);
+      if ($this->removeNonMusementLinks($url) != 1) {
+        continue;
       }
+
+      if ($this->robotPages($url, $sqlite) != 1) {
+        continue;
+      }
+
+      array_push($newlinks, $url);
+
+      // if ($this->removeNonMusementLinks($url) == 1 && $this->robotPages($url, $sqlite) == 1) {
+      //   array_push($newlinks, $url);
+      // }
     }
     return $newlinks;
   }
@@ -386,27 +396,51 @@ class CurlDataRetrieval {
     // Restore error level
     libxml_use_internal_errors($internalErrors);
 
-    // parses the html for the view / page type
-    $viewtype = $this->scrapeView($xml);
+  // parses the html for the view / page type
+  // $viewtype = $this->scrapeView($xml);
+  // error_log ($url. ' View Scraped', 0);
 
-    // Now we have the view information, check to see if it's a city-related page.
-    // city, event, attraction, editorial
-    if (in_array($viewtype, array('city', 'event', 'attraction', 'editorial'))) {
-      //  Now see if it's (related to) a top 20 city.
-      if ($this->isTop20City($url, $viewtype, $sqlite) == 0) {
-        $sqlite->setLinkToNotInclude($url);
-        return;
-      }
-      // error_log($url . ' cityfiltered. Valid: '.$validurl.'<br />', 0);
-      //  We know it's related to a top 20 city, now see if it's a top 20 activity / event.
-      if ($viewtype == 'event') {
-        if ($this->isTop20Event($url, $sqlite) == 0) {
-          $sqlite->setLinkToNotInclude($url);
-          return;
-        }
-        // error_log($url . ' activityfiltered. Valid: '.$validurl.'<br />', 0);
-      }
+    // Taking out view scraping and replacing with assumptions based on format of url
+    // extract path for ease of use
+    $path = parse_url($url, PHP_URL_PATH);
+    // if last 2 characters before the last slash are one of '-p', '-v', '-t', '-l', '-c'
+    if (in_array(substr($path, -3, 2), array('-p', '-v', '-t', '-l', '-c')) {
+      // it's an "other" type of page
+      $viewtype = 'other';
     }
+    // else if path contains 4 slashes and the last character before the last slash is numeric
+    elseif (substr_count($path, '/') == 4 && is_numeric(substr($path, -2, 1))) {
+      // It's an activity / event
+      $viewtype = 'event';
+    }
+    // else if there are 3 slashes in the path and no dashes
+    elseif (substr_count($path, '/') == 3 && !substr_count($path, '-')) {
+      // It's a city
+      $view = 'city';
+    } else {
+      $viewtype = 'unknown';
+    }
+
+
+    // // Now we have the view information, check to see if it's a city-related page.
+    // // city, event, attraction, editorial
+    // if (in_array($viewtype, array('city', 'event', 'attraction', 'editorial'))) {
+    //   error_log ($url. ' View Scraped', 0);
+    //   //  Now see if it's (related to) a top 20 city.
+    //   if ($this->isTop20City($url, $viewtype, $sqlite) == 0) {
+    //     $sqlite->setLinkToNotInclude($url);
+    //     return;
+    //   }
+    //   // error_log($url . ' cityfiltered. Valid: '.$validurl.'<br />', 0);
+    //   //  We know it's related to a top 20 city, now see if it's a top 20 activity / event.
+    //   if ($viewtype == 'event') {
+    //     if ($this->isTop20Event($url, $sqlite) == 0) {
+    //       $sqlite->setLinkToNotInclude($url);
+    //       return;
+    //     }
+    //     // error_log($url . ' activityfiltered. Valid: '.$validurl.'<br />', 0);
+    //   }
+    // }
 
     // if the page has not been designated invalid, scrape the page for links, and insert the results
     // scrape the HTML Page for links and add them to the links table
@@ -415,6 +449,7 @@ class CurlDataRetrieval {
     if (strpos($url, 'sitemap-p')) {
       $smcitylinks = $this->scrapeSiteMapLinks($xml, $sqlite);
       $sqlite->insertLinks($smcitylinks);
+      error_log ($url. ' SiteMap Scraped', 0);
     }
 
     $newlinks = $this->scrapeLinks($xml, $sqlite);
@@ -422,7 +457,7 @@ class CurlDataRetrieval {
     $currlinks = array_column($sqlite->retrieveLinks(), 'url');
     // return only urls not already in links table (in $newlinks but not in $currlinks)
     $newlinks = array_diff($newlinks, $currlinks);
-    error_log('Scraped: '.$url.', '.count($newlinks).' new links found', 0);
+    error_log($url.' Links Scraped. '.count($newlinks).' new links found', 0);
 
     // New link filtering.
     // set $cityrejects as array containing previously rejected cities
@@ -451,12 +486,12 @@ class CurlDataRetrieval {
         }
       }
     }
-
-
+    error_log($url.' New Links Filtered. '.count($newlinks).' new links found', 0);
 
     // insert links as array
     $sqlite->insertLinks($newlinks);
 
+    // url has made it through to the end of scraping without being filtered out. Set the view type and worked = 1
     $sqlite->setLinkPageType($url, $viewtype);
 
     // Refactor to use only one update sql query
