@@ -400,26 +400,6 @@ class CurlDataRetrieval {
   // $viewtype = $this->scrapeView($xml);
   // error_log ($url. ' View Scraped', 0);
 
-    // Taking out view scraping and replacing with assumptions based on format of url
-    // extract path for ease of use
-    $path = parse_url($url, PHP_URL_PATH);
-    // if last 2 characters before the last slash are one of '-p', '-v', '-t', '-l', '-c'
-    if (in_array(substr($path, -3, 2), array('-p', '-v', '-t', '-l', '-c'))) {
-      // it's an "other" type of page
-      $viewtype = 'other';
-    }
-    // else if path contains 4 slashes and the last character before the last slash is numeric
-    elseif (substr_count($path, '/') == 4 && is_numeric(substr($path, -2, 1))) {
-      // It's an activity / event
-      $viewtype = 'event';
-    }
-    // else if there are 3 slashes in the path and no dashes
-    elseif (substr_count($path, '/') == 3 && !substr_count($path, '-')) {
-      // It's a city
-      $viewtype = 'city';
-    } else {
-      $viewtype = 'unknown';
-    }
 
 
     // // Now we have the view information, check to see if it's a city-related page.
@@ -460,39 +440,66 @@ class CurlDataRetrieval {
     error_log('Links Scraped. '.count($newlinks).' new link(s) found', 0);
 
     // New link filtering.
+    // Change so that links are not unset, but added to the link list as 'Not Include' links, then ignored during reprocessing
     // set $cityrejects as array containing previously rejected cities
     $cityrejects = $sqlite->retrieveCityRejects();
 
+    $linkstoadd = array();
     // loop through $newlinks to decide whether to add the links to the db for processing / inclusion in sitemap
     foreach ($newlinks as $key => $newlink) {
+      // Set view type for newly added link based on url format
+      // extract path for ease of use
+      $path = parse_url($newlink, PHP_URL_PATH);
+      // if last 2 characters before the last slash are one of '-p', '-v', '-t', '-l', '-c'
+      if (in_array(substr($path, -3, 2), array('-p', '-v', '-t', '-l', '-c'))) {
+        // it's an "other" type of page
+        $viewtype = 'other';
+      }
+      // else if path contains 4 slashes and the last character before the last slash is numeric
+      elseif (substr_count($path, '/') == 4 && is_numeric(substr($path, -2, 1))) {
+        // It's an activity / event
+        $viewtype = 'event';
+      }
+      // else if there are 3 slashes in the path and no dashes
+      elseif (substr_count($path, '/') == 3 && !substr_count($path, '-')) {
+        // It's a city
+        $viewtype = 'city';
+      } else {
+        $viewtype = 'unknown';
+      }
+
+      // Set $include as default = 1;
+      $include = 1;
       // 1. Filter out all links which have a rejected city 'stem'
       $cityurl = $this->buildCityURL($newlink);
       // check to see if the $cityurl is in the $cityrejects list
       if (array_search($cityurl, array_column($cityrejects, 'url'))) {
         // remove from array and move onto the next link
-        unset($newlinks[$key]);
-        continue;
+        // unset($newlinks[$key]);
+        $include = 0;
+        // continue;
       }
 
       // 2. Filter out all activities which are not in the top activities list
-      // Only evaluate for links which have 4 slashes in the path & with a number on the end
-      $path = parse_url($newlink, PHP_URL_PATH);
-      if (substr_count($path, '/') == 4 && is_numeric(substr($path, -2, 1))) {
+      if ($viewtype == 'event') {
         // We have decided / assumed it is an activity. Now we check if it is a top 20 event
         if ($this->isTop20Event($newlink, $sqlite) == 0) {
           // remove from array and move onto the next link
-          unset($newlinks[$key]);
-          continue;
+          // unset($newlinks[$key]);
+          $include = 0;
+          // continue;
         }
       }
+      $linkstoadd[] = array('url'=>$newlink, 'type'=>$viewtype, 'include'=>$include);
     }
-    error_log('New Links Filtered. '.count($newlinks).' new link(s) remaining', 0);
+    error_log('New Links Filtered. '.count($linkstoadd).' new link(s) remaining', 0);
 
     // insert links as array
-    $sqlite->insertLinks($newlinks);
+    // $sqlite->insertLinks($newlinks);
+    $sqlite->insertLinks($linkstoadd);
 
     // url has made it through to the end of scraping without being filtered out. Set the view type and worked = 1
-    $sqlite->setLinkPageType($url, $viewtype);
+    // $sqlite->setLinkPageType($url, $viewtype);
 
     // Refactor to use only one update sql query
 

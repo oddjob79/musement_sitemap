@@ -205,21 +205,39 @@ class SQLiteInteract {
     }
   }
 
+  // // takes $urls array and uses data to update the links table
+  // public function insertLinks($urls) {
+  //   foreach ($urls as $url) {
+  //     // prepare sql statement
+  //     $sql = 'INSERT INTO links(url) VALUES(:url)';
+  //     $stmt = $this->pdo->prepare($sql);
+  //     try {
+  //       // execute sql insert statement
+  //       $stmt->execute([':url' => $url]);
+  //     } catch (Exception $e) {
+  //       echo 'Error writing to DB: ',  $e->getMessage(), "\n";
+  //     }
+  //   }
+  // }
+
   // takes $urls array and uses data to update the links table
-  public function insertLinks($urls) {
-    foreach ($urls as $url) {
+  public function insertLinks($links) {
+    foreach ($links as $link) {
       // prepare sql statement
-      $sql = 'INSERT INTO links(url) VALUES(:url)';
+      $sql = 'INSERT INTO links(url, type, include) VALUES(:url, :type, :include)';
       $stmt = $this->pdo->prepare($sql);
       try {
         // execute sql insert statement
-        $stmt->execute([':url' => $url]);
+        $stmt->execute([
+          ':url' => $link['url'],
+          ':type' => $link['type'],
+          ':include' => $link['include']
+        ]);
       } catch (Exception $e) {
         echo 'Error writing to DB: ',  $e->getMessage(), "\n";
       }
     }
   }
-
 
   // returns all UNWORKED links found from site as array
   public function retrieveLinks() {

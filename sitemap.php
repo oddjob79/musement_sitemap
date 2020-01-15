@@ -17,82 +17,113 @@ $sqlite->createTables();
 // insert starting data into db (top 20 cities, top 20 activities, link types)
 $sqlite->seedData();
 
-
-// START PROGRAM
-// Set locale (probably scrap)
-$locale = 'es';
-// Set initial target url(s)
-$target = 'https://www.musement.com/'.$locale.'/';
-// $target = array('https://www.musement.com/es/', 'https://www.musement.com/it/', 'https://www.musement.com/fr/');
-
-$seedurls = array($target.'sitemap-p/', $target);
-
-// insert target into list of links to scan
-$sqlite->insertLinks($seedurls);
-
 // instantiate scanning library
 $scan = new CurlDataRetrieval();
 
-// consider do while loop to test if there are any non worked links
-// consider counting non worked links and setting i to the count, then re-test
+// Set locale (probably scrap)
+$locale = 'es';
 
-// DO NOT RUN WITHOUT ADDITIONAL CHECKS - ADD DEBUGGING TO CHECK IT IS REQUERYING THE TABLE - ADD LIMITER TO STOP IT GOING MENTAL
-$linksfound = $sqlite->retrieveLinks();
-
-
-// Successful test to see if there are unworked urls in the $linksfound array
-// if (array_search('0', array_column($linksfound, 'worked')) !== false) {
-//   echo 'There are unworked urls';
-// }
-//
-// echo '<br />end linksfound = '. end($linksfound)['url'];
-
-set_time_limit(120);
-
-$x=0;
-// while there are urls in the links table with worked == 0
-while ($x<3 && array_search('0', array_column($linksfound, 'worked')) !== false) {
-  $x++;
-
-  // sort array by length of url - we should get cities first and can prefilter based on city
-  // sort array by number of slashes found in the URL path in order to prioritize cities to aid prefiltering
-  // usort($linksfound, function($a, $b) {
-  //     // return strlen($a['url']) - strlen($b['url']);
-  //     return substr_count(parse_url($a['url'], PHP_URL_PATH), '/') - substr_count(parse_url($b['url'], PHP_URL_PATH), '/');
-  // });
-
-  // set the $lastlink var to the value of the last url in the array
-  $lastlink = end($linksfound)['url'];
-  $counter = 0;
-
-  foreach ($linksfound as $link) {
-    // added only for logging and counting
-    if ($link['worked']==0) {
-      $counter++;
-      error_log('Processing: '.$link['url'].'  Counter = '.$counter, 0);
-      // filter out urls we don't need / want to scan and previously worked urls
-      // if ($scan->preScanFilter($link['url'], $sqlite) != 0 && $link['worked'] == 0) {
-        // error_log('Processing URL: '.$link['url'].' $x = '.$x, 0);
-        // scan & process
-        $scan->scanURL($link['url'], $sqlite);
-        error_log($link['url'].' Scanning complete.');
-      // }
-
-    }
-
-    // if this is the last link in the array, rebuild the array
-    if ($link['url'] == $lastlink) {
-      error_log('Last URL: '.$link['url'], 0);
-      // gather list of links in table
-      $linksfound = $sqlite->retrieveLinks();
-    }
-  }
+// gather city urls only
+$cities = array_column($sqlite->retrieveCities(), 'url');
+// generate new array containing urls and city type for sending to links table
+$citylinks = array();
+foreach ($cities as $city) {
+  $citylinks[] = array('url'=>$city, 'type'=>'city', 'include'=>1);
 }
 
+// gather activity urls only
+$events = array_column($sqlite->retrieveEvents(), 'url');
+// generate new array containing urls and city type for sending to links table
+$eventlinks = array();
+foreach ($events as $event) {
+  $eventlinks[] = array('url'=>$event, 'type'=>'event', 'include'=>1);
+}
+
+// merge all city and activity urls together
+// $toscan = array_merge($cities, $events);
+$toscan = array_merge($citylinks, $eventlinks);
+
+// insert all urls into links table ready for processing
+$sqlite->insertLinks($toscan);
 
 
+set_time_limit(60);
 
-echo '<br />Located Links:<br />';
-var_dump($linksfound);
+$counter = 0;
+foreach ($sqlite->retrieveLinks() as $link) {
+  $counter++;
+  error_log('Processing: '.$link['url'].'  Counter = '.$counter, 0);
+  // scan & process
+  $scan->scanURL($link['url'], $sqlite);
+}
+
+$linklist = $sqlite->retrieveLinks();
+foreach ($linklist as $link) {
+  if ($link['include']==1) {
+    echo '<br />'.$link['url'].'<br />';
+    if ($link['type']=='city') {
+      echo 'Priority: 0.7<br />';
+    } elseif ($link['type']=='event') {
+      echo 'Priority: 0.5<br />';
+    } else {
+      echo 'Priority: 1.0<br />';
+    }
+
+  }
+
+}
+
+// Original logic below
+
+// // START PROGRAM
+// // Set locale (probably scrap)
+// $locale = 'es';
+// // Set initial target url(s)
+// $target = 'https://www.musement.com/'.$locale.'/';
+// // $target = array('https://www.musement.com/es/', 'https://www.musement.com/it/', 'https://www.musement.com/fr/');
+//
+// $seedurls = array($target.'sitemap-p/', $target);
+//
+// // insert target into list of links to scan
+// $sqlite->insertLinks($seedurls);
+
+// set_time_limit(120);
+// $linksfound = $sqlite->retrieveLinks();
+
+// $x=0;
+// // while there are urls in the links table with worked == 0
+// while ($x<3 && array_search('0', array_column($linksfound, 'worked')) !== false) {
+//   $x++;
+//
+//   // set the $lastlink var to the value of the last url in the array
+//   $lastlink = end($linksfound)['url'];
+//   $counter = 0;
+//
+//   foreach ($linksfound as $link) {
+//     // added only for logging and counting
+//     if ($link['worked']==0) {
+//       $counter++;
+//       error_log('Processing: '.$link['url'].'  Counter = '.$counter, 0);
+//         // scan & process
+//         $scan->scanURL($link['url'], $sqlite);
+//         error_log($link['url'].' Scanning complete.');
+//       // }
+//
+//     }
+//
+//     // if this is the last link in the array, rebuild the array
+//     if ($link['url'] == $lastlink) {
+//       error_log('Last URL: '.$link['url'], 0);
+//       // gather list of links in table
+//       $linksfound = $sqlite->retrieveLinks();
+//     }
+//   }
+// }
+//
+
+
+// 
+// echo '<br />Located Links:<br />';
+// var_dump($linksfound);
 
 ?>
