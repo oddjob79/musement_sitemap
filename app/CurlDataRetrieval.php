@@ -166,9 +166,6 @@ class CurlDataRetrieval {
       foreach($head->getElementsByTagName('a') as $link) {
         // make sure link is absolute
         $url = $this->relativeToAbsoluteLink($link->getAttribute('href'));
-
-        // link will be a city - ensure the url is correctly formatted
-        $cityurl = $this->buildCityURL($url);
         // set $include var as 1 by default
         $include = 1;
         // if the city is not in the top 20, add to rejects and move on
@@ -177,38 +174,31 @@ class CurlDataRetrieval {
           $sqlite->insertCityReject($url);
           continue;
         }
-
-        // // perform preWriteChecks on link before submitting it for db write
-        // if ($this->removeNonMusementLinks($url) == 1 && $this->robotPages($url, $sqlite) == 1) {
-        //   array_push($newlinks, $url);
-        // }
       }
     }
 
-    // retrieve previously rejected city urls from db
-    $cityrejects = $sqlite->retrieveCityRejects();
-
-    foreach($xml->getElementsByTagName('a') as $link) {
-      // make sure link is absolute
-      $url = $this->relativeToAbsoluteLink($link->getAttribute('href'));
-
-      // filter out any previously rejected (non-top 20) cities
-      // return only the city portion of the url
-      $cityurl = $this->buildCityURL($url);
-      // check to see if the $cityurl is in the $cityrejects list and if so, move on
-      if (array_search($cityurl, array_column($cityrejects, 'url'))) {
-        continue;
-      }
-      // perform preWriteChecks on link before submitting it for db write
-      if ($this->removeNonMusementLinks($url) == 1 && $this->robotPages($url, $sqlite) == 1) {
-        array_push($newlinks, $url);
-      }
-
-    }
-
+    // // retrieve previously rejected city urls from db
+    // $cityrejects = $sqlite->retrieveCityRejects();
+    //
+    // // now run through all links on page
+    // foreach($xml->getElementsByTagName('a') as $link) {
+    //   // make sure link is absolute
+    //   $url = $this->relativeToAbsoluteLink($link->getAttribute('href'));
+    //
+    //   // filter out any previously rejected (non-top 20) cities
+    //   // return only the city portion of the url
+    //   $cityurl = $this->buildCityURL($url);
+    //   // check to see if the $cityurl is in the $cityrejects list and if so, move on
+    //   if (array_search($cityurl, array_column($cityrejects, 'url'))) {
+    //     continue;
+    //   }
+    //   // perform preWriteChecks on link before submitting it for db write
+    //   if ($this->removeNonMusementLinks($url) == 1 && $this->robotPages($url, $sqlite) == 1) {
+    //     array_push($newlinks, $url);
+    //   }
+    // }
     return $newlinks;
   }
-
 
   // Find all links on the HTML Page and return array of 'new links'
   // private function scrapeLinks($xml, $sqlite) {
@@ -216,14 +206,10 @@ class CurlDataRetrieval {
     $newlinks = array();
     // Loop through each <a> tag in the dom and add it to the links table
     foreach($xml->getElementsByTagName('a') as $link) {
-      // error_log('NEW LINK FOUND = '.$link->getAttribute('href'), 0);
       // make sure link is absolute
       $url = $this->relativeToAbsoluteLink($link->getAttribute('href'));
-      // // insert url into db
-      // $sqlite->insertLink($url);
 
       // perform preWriteChecks on link before submitting it for db write
-      // if ($this->removeNonMusementLinks($url) == 1) {
       if ($this->removeNonMusementLinks($url) == 1 && $this->robotPages($url, $sqlite) == 1) {
         array_push($newlinks, $url);
       }
@@ -302,9 +288,7 @@ class CurlDataRetrieval {
 
     // is the city one of the top 20 cities from the API?
     if (!array_search($url, array_column($eventdata, 'url'))) {
-      // UPDATE link list to 'worked' and set to 'not include' for non-top 20 city
-      // $sqlite->setLinkToWorked($url);
-      // $sqlite->setLinkToNotInclude($url);
+      // set $validurl to 0
       $validurl = 0;
     }
     return $validurl;
@@ -429,15 +413,46 @@ class CurlDataRetrieval {
     // $this->scrapeLinks($xml, $sqlite);
 
     if (strpos($url, 'sitemap-p')) {
-      $newlinks = $this->scrapeSiteMapLinks($xml, $sqlite);
-    } else {
-      $newlinks = $this->scrapeLinks($xml, $sqlite);
+      $smcitylinks = $this->scrapeSiteMapLinks($xml, $sqlite);
+      $sqlite->insertLinks($smcitylinks);
     }
+
+    $newlinks = $this->scrapeLinks($xml, $sqlite);
     // retrieve list of links already in table, and return the url column only
     $currlinks = array_column($sqlite->retrieveLinks(), 'url');
     // return only urls not already in links table (in $newlinks but not in $currlinks)
     $newlinks = array_diff($newlinks, $currlinks);
     error_log('Scraped: '.$url.', '.count($newlinks).' new links found', 0);
+
+    // New link filtering.
+    // set $cityrejects as array containing previously rejected cities
+    $cityrejects = $sqlite->retrieveCityRejects();
+
+    // loop through $newlinks to decide whether to add the links to the db for processing / inclusion in sitemap
+    foreach ($newlinks as $key => $newlink) {
+      // 1. Filter out all links which have a rejected city 'stem'
+      $cityurl = $this->buildCityURL($newlink);
+      // check to see if the $cityurl is in the $cityrejects list
+      if (array_search($cityurl, array_column($cityrejects, 'url'))) {
+        // remove from array and move onto the next link
+        unset($newlinks[$key]);
+        continue;
+      }
+
+      // 2. Filter out all activities which are not in the top activities list
+      // Only evaluate for links which have 4 slashes in the path & with a number on the end
+      $path = parse_url($newlink, PHP_URL_PATH);
+      if (substr_count($path, '/') == 4 && is_numeric(substr($path, -2, 1))) {
+        // We have decided / assumed it is an activity. Now we check if it is a top 20 event
+        if ($this->isTop20Event($newlink, $sqlite) == 0) {
+          // remove from array and move onto the next link
+          unset($newlinks[$key]);
+          continue;
+        }
+      }
+    }
+
+
 
     // insert links as array
     $sqlite->insertLinks($newlinks);

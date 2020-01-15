@@ -15,6 +15,7 @@ $activities = json_decode($res, true);
 
 foreach ($activities['data'] as $activity) {
   echo $activity['url'].'</br>';
+  echo substr($activity['url'], -2, 1);
 }
 
 var_dump($activities['data']);

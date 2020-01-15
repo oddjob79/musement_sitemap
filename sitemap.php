@@ -25,7 +25,7 @@ $locale = 'es';
 $target = 'https://www.musement.com/'.$locale.'/';
 // $target = array('https://www.musement.com/es/', 'https://www.musement.com/it/', 'https://www.musement.com/fr/');
 
-$seedurls = array($target, $target.'sitemap-p/');
+$seedurls = array($target.'sitemap-p/', $target);
 
 // insert target into list of links to scan
 $sqlite->insertLinks($seedurls);
@@ -47,11 +47,11 @@ $linksfound = $sqlite->retrieveLinks();
 //
 // echo '<br />end linksfound = '. end($linksfound)['url'];
 
-set_time_limit(30);
+set_time_limit(60);
 
 $x=0;
 // while there are urls in the links table with worked == 0
-while ($x<1 && array_search('0', array_column($linksfound, 'worked')) !== false) {
+while ($x<2 && array_search('0', array_column($linksfound, 'worked')) !== false) {
   $x++;
 
   // sort array by length of url - we should get cities first and can prefilter based on city
@@ -71,11 +71,11 @@ while ($x<1 && array_search('0', array_column($linksfound, 'worked')) !== false)
       $counter++;
       error_log('Found URL: '.$link['url'].' counter = '.$counter, 0);
       // filter out urls we don't need / want to scan and previously worked urls
-      if ($scan->preScanFilter($link['url'], $sqlite) != 0 && $link['worked'] == 0) {
-        error_log('Processing URL: '.$link['url'].' $x = '.$x, 0);
+      // if ($scan->preScanFilter($link['url'], $sqlite) != 0 && $link['worked'] == 0) {
+        // error_log('Processing URL: '.$link['url'].' $x = '.$x, 0);
         // scan & process
         $scan->scanURL($link['url'], $sqlite);
-      }
+      // }
 
     }
 
