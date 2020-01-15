@@ -25,8 +25,10 @@ $locale = 'es';
 $target = 'https://www.musement.com/'.$locale.'/';
 // $target = array('https://www.musement.com/es/', 'https://www.musement.com/it/', 'https://www.musement.com/fr/');
 
+$seedurls = array($target, $target.'sitemap-p/');
+
 // insert target into list of links to scan
-$sqlite->insertLink($target);
+$sqlite->insertLinks($seedurls);
 
 // instantiate scanning library
 $scan = new CurlDataRetrieval();
@@ -45,37 +47,43 @@ $linksfound = $sqlite->retrieveLinks();
 //
 // echo '<br />end linksfound = '. end($linksfound)['url'];
 
-set_time_limit(90);
+set_time_limit(30);
 
 $x=0;
 // while there are urls in the links table with worked == 0
-while ($x<2 && array_search('0', array_column($linksfound, 'worked')) !== false) {
+while ($x<1 && array_search('0', array_column($linksfound, 'worked')) !== false) {
   $x++;
 
   // sort array by length of url - we should get cities first and can prefilter based on city
-  usort($linksfound, function($a, $b) {
-      return strlen($a['url']) - strlen($b['url']);
-  });
+  // sort array by number of slashes found in the URL path in order to prioritize cities to aid prefiltering
+  // usort($linksfound, function($a, $b) {
+  //     // return strlen($a['url']) - strlen($b['url']);
+  //     return substr_count(parse_url($a['url'], PHP_URL_PATH), '/') - substr_count(parse_url($b['url'], PHP_URL_PATH), '/');
+  // });
 
   // set the $lastlink var to the value of the last url in the array
   $lastlink = end($linksfound)['url'];
-  foreach ($linksfound as $link) {
+  $counter = 0;
 
-    // filter out urls we don't need / want to scan and previously worked urls
-    if ($scan->preScanFilter($link['url'], $sqlite) != 0 && $link['worked'] == 0) {
-      error_log('Processing URL: '.$link['url'].' $x = '.$x, 0);
-      // scan & process
-      $scan->scanURL($link['url'], $sqlite);
+  foreach ($linksfound as $link) {
+    // added only for logging and counting
+    if ($link['worked']==0) {
+      $counter++;
+      error_log('Found URL: '.$link['url'].' counter = '.$counter, 0);
+      // filter out urls we don't need / want to scan and previously worked urls
+      if ($scan->preScanFilter($link['url'], $sqlite) != 0 && $link['worked'] == 0) {
+        error_log('Processing URL: '.$link['url'].' $x = '.$x, 0);
+        // scan & process
+        $scan->scanURL($link['url'], $sqlite);
+      }
+
     }
 
     // if this is the last link in the array, rebuild the array
     if ($link['url'] == $lastlink) {
       error_log('Last URL: '.$link['url'], 0);
+      // gather list of links in table
       $linksfound = $sqlite->retrieveLinks();
-
-      var_dump($linksfound);
-      exit;
-
     }
   }
 }
