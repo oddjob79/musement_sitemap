@@ -6,3 +6,5 @@ track moved functions.php
 sitemap.xml
 *.db
 spare_parts.php
+muse_sitemap_es.xml
+xml_parse.php

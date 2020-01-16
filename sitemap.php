@@ -5,6 +5,7 @@ require 'vendor/autoload.php';
 // use classes for SQLite connection
 use App\SQLiteConnection as SQLiteConnection;
 use App\SQLiteInteract as SQLiteInteract;
+use App\SQLiteDBSetup as SQLiteDBSetup;
 use App\CurlDataRetrieval as CurlDataRetrieval;
 
 // Check to see if we have already selected and posted the selected region
@@ -13,21 +14,17 @@ if ($_POST['locale']) {
   unlink('/vagrant/logs/php_errors.log');
   // connect to sqlite db, or create if not exists, use the $init flag to designate as the initial connection and delete existing db
   $pdo = (new SQLiteConnection())->connect($init=1);
-  // instantiate the SQLiteInteract class
-  $sqlite = new SQLiteInteract($pdo);
+  // instantiate the SQLiteDBSetup class
+  $dbsetup = new SQLiteDBSetup($pdo);
 
-  // instantiate scanning library
-  $scan = new CurlDataRetrieval();
+  // use createTables method to create the db tables, if they don't already exist
+  $dbsetup->createTables();
+  // insert starting data into db (top 20 cities, top 20 activities, link types)
+  $dbsetup->seedData($locale);
 
   // set $locale from html form
   $locale = $_POST['locale'];
 
-  // use createTables method to create the db tables, if they don't already exist
-  $sqlite->createTables();
-  // insert starting data into db (top 20 cities, top 20 activities, link types)
-  $sqlite->seedData($locale);
-
-  // START PROGRAM
   // Set initial target urls
   $target = 'https://www.musement.com/'.$locale.'/';
   $seedurls = [
@@ -35,15 +32,18 @@ if ($_POST['locale']) {
     array('url'=>$target, 'type'=>'other', 'include'=>1)
   ];
 
+  // instantiate the SQLiteInteract class
+  $sqlite = new SQLiteInteract($pdo);
   // insert target into list of links to scan
   $sqlite->insertLinks($seedurls);
-
-  // instantiate scanning library
-  $scan = new CurlDataRetrieval();
-
+  // gather the links you will use to begin the while loop
   $linksfound = $sqlite->retrieveLinks();
 
-  set_time_limit(60);
+  // instantiate scanning library for use inside the foreach loop
+  $scan = new CurlDataRetrieval();
+
+  // set time limit for open connection to 5 minutes
+  set_time_limit(300);
 
   // while there are urls in the links table with worked == 0
   while (array_search('0', array_column($linksfound, 'worked')) !== false) {
@@ -66,9 +66,9 @@ if ($_POST['locale']) {
 
   // Finished populating tables, now build xml
   // retrieve the full link list from the db for the final time
-  $linklist = $sqlite->retrieveLinks();
+  $alllinks = $sqlite->retrieveLinks();
   // create the xml file
-  $sitemapxml = $scan->createXMLFile($linklist);
+  $sitemapxml = $scan->createXMLFile($alllinks);
   // output to browser
   header('Content-Type: text/xml');
   echo $sitemapxml;
