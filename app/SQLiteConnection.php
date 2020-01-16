@@ -2,7 +2,7 @@
 namespace App;
 
 /**
- * SQLite connnection
+ * SQLite connnection - taken from SQLite manual
  */
 class SQLiteConnection {
     /**

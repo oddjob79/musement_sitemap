@@ -8,7 +8,6 @@ use App\SQLiteInteract as SQLiteInteract;
 use App\CurlDataRetrieval as CurlDataRetrieval;
 
 // if html form has been completed and a locale has been sent
-
 if ($_POST['locale']) {
   // delete log file
   unlink('/vagrant/logs/php_errors.log');
@@ -21,7 +20,6 @@ if ($_POST['locale']) {
   $scan = new CurlDataRetrieval();
 
   $locale = $_POST['locale'];
-  // echo '<locale>'.$locale.'</locale>';
 
   // use createTables method to create the db tables, if they don't already exist
   $sqlite->createTables();
@@ -45,7 +43,6 @@ if ($_POST['locale']) {
   }
 
   // merge all city and activity urls together
-  // $toscan = array_merge($cities, $events);
   $toscan = array_merge($citylinks, $eventlinks);
 
   // insert all urls into links table ready for processing

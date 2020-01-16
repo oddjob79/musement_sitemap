@@ -7,6 +7,7 @@ use App\SQLiteConnection as SQLiteConnection;
 use App\SQLiteInteract as SQLiteInteract;
 use App\CurlDataRetrieval as CurlDataRetrieval;
 
+// Check to see if we have already selected and posted the selected region
 if ($_POST['locale']) {
   // delete log file
   unlink('/vagrant/logs/php_errors.log');
@@ -18,6 +19,7 @@ if ($_POST['locale']) {
   // instantiate scanning library
   $scan = new CurlDataRetrieval();
 
+  // set $locale from html form
   $locale = $_POST['locale'];
 
   // use createTables method to create the db tables, if they don't already exist
@@ -25,14 +27,9 @@ if ($_POST['locale']) {
   // insert starting data into db (top 20 cities, top 20 activities, link types)
   $sqlite->seedData($locale);
 
-
   // START PROGRAM
-  // Set initial target url(s)
+  // Set initial target urls
   $target = 'https://www.musement.com/'.$locale.'/';
-  // $target = array('https://www.musement.com/es/', 'https://www.musement.com/it/', 'https://www.musement.com/fr/');
-
-  // $seedurls = array($target.'sitemap-p/', $target);
-
   $seedurls = [
     array('url'=>$target.'sitemap-p/', 'type'=>'other', 'include'=>1),
     array('url'=>$target, 'type'=>'other', 'include'=>1)
@@ -44,67 +41,38 @@ if ($_POST['locale']) {
   // instantiate scanning library
   $scan = new CurlDataRetrieval();
 
-  // consider do while loop to test if there are any non worked links
-  // consider counting non worked links and setting i to the count, then re-test
-
-  // DO NOT RUN WITHOUT ADDITIONAL CHECKS - ADD DEBUGGING TO CHECK IT IS REQUERYING THE TABLE - ADD LIMITER TO STOP IT GOING MENTAL
   $linksfound = $sqlite->retrieveLinks();
-
-
-  // Successful test to see if there are unworked urls in the $linksfound array
-  // if (array_search('0', array_column($linksfound, 'worked')) !== false) {
-  //   echo 'There are unworked urls';
-  // }
-  //
-  // echo '<br />end linksfound = '. end($linksfound)['url'];
 
   set_time_limit(60);
 
-  $x=0;
   // while there are urls in the links table with worked == 0
-  while ($x<2 && array_search('0', array_column($linksfound, 'worked')) !== false) {
-    $x++;
-
-    // sort array by length of url - we should get cities first and can prefilter based on city
-    // sort array by number of slashes found in the URL path in order to prioritize cities to aid prefiltering
-    // usort($linksfound, function($a, $b) {
-    //     // return strlen($a['url']) - strlen($b['url']);
-    //     return substr_count(parse_url($a['url'], PHP_URL_PATH), '/') - substr_count(parse_url($b['url'], PHP_URL_PATH), '/');
-    // });
-
+  while (array_search('0', array_column($linksfound, 'worked')) !== false) {
     // set the $lastlink var to the value of the last url in the array
     $lastlink = end($linksfound)['url'];
-    $counter = 0;
-
+    // for every link in the links table
     foreach ($linksfound as $link) {
-      // added only for logging and counting
+      // only process "unworked" links
       if ($link['worked']==0) {
-        $counter++;
-        error_log('Processing: '.$link['url'].'  Counter = '.$counter, 0);
-        // filter out urls we don't need / want to scan and previously worked urls
-        // if ($scan->preScanFilter($link['url'], $sqlite) != 0 && $link['worked'] == 0) {
-          // error_log('Processing URL: '.$link['url'].' $x = '.$x, 0);
-          // scan & process
-          $scan->scanURL($link['url'], $sqlite, $locale);
-          error_log($link['url'].' Scanning complete.');
-        // }
-
+        // scan & process
+        $scan->scanURL($link['url'], $sqlite, $locale);
       }
-
-      // if this is the last link in the array, rebuild the array
+      // if this is the last link in the array, rebuild the array with all the links found during last processing run
       if ($link['url'] == $lastlink) {
-        error_log('Last URL: '.$link['url'], 0);
         // gather list of links in table
         $linksfound = $sqlite->retrieveLinks();
       }
     }
   }
 
+  // Finished populating tables, now build xml
+  // retrieve the full link list from the db for the final time
+  $linklist = $sqlite->retrieveLinks();
+  // create the xml file
+  $sitemapxml = $scan->createXMLFile($linklist);
+  // output to browser
+  header('Content-Type: text/xml');
+  echo $sitemapxml;
 
-
-
-  echo '<br />Located Links:<br />';
-  var_dump($linksfound);
 } else {
 
     // html form for selecting locale and version

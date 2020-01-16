@@ -7,7 +7,6 @@ require 'vendor/autoload.php';
 
 use App\CurlDataRetrieval as CurlDataRetrieval;
 
-
 /**
  * SQLite Interact with Database
  */
@@ -26,13 +25,6 @@ class SQLiteInteract {
   public function __construct($pdo) {
       $this->pdo = $pdo;
   }
-
-  // // enable foreign key constraints - INEXPLICABLY NOT WORKING!!!!!!!!!
-  // public function enableForeignKeys() {
-  //   // enable foreign key constraints
-  //   $command = 'PRAGMA foreign_keys=1;';
-  //   $this->pdo->exec($command);
-  // }
 
   /**
    * create tables
@@ -74,11 +66,6 @@ class SQLiteInteract {
   // @param int $id
   // @param string $url
   private function insertCities($locale) {
-    // echo '<br />Size of city array = ', sizeof($this->retrieveCities());
-    // check if data already exists, if so, exit - TO DO Update for all locales (60) - don't need as deleting db each run
-    // if (sizeof($this->retrieveCities()) == 20) {
-    //   return;
-    // }
     // set vars for data retrieval
     $cityapiurl = 'https://api.musement.com/api/v3/cities?limit=20';
     // retrieve city data from api
@@ -127,10 +114,6 @@ class SQLiteInteract {
   private function insertEvents($locale) {
     // retrieve top 20 cities
     $citydata = $this->retrieveCities();
-    // // check if data already exists, if so, exit TO DO update for all locales (1200) - do not need as deleting db each time
-    // if (sizeof($this->retrieveEvents()) == 400) {
-    //   return;
-    // }
     // retrieve top 20 activities per city and insert into database
     foreach ($citydata as $city) {
       // set vars for data retrieval
@@ -181,44 +164,15 @@ class SQLiteInteract {
     return $eventdata;
   }
 
+  // seed data into tables at first run
   public function seedData($locale) {
     $this->insertCities($locale);
     $this->insertEvents($locale);
     $this->insertRobotPages();
   }
 
-  // takes $urls array and uses data to update the links table
-  public function insertLink($url) {
-    // check link exists in the links table and continue if not
-    if (!$this->checkLinkExists($url)) {
-      // prepare sql statement
-      $sql = 'INSERT INTO links(url) VALUES(:url)';
-      $stmt = $this->pdo->prepare($sql);
-      try {
-        // execute sql insert statement
-        $stmt->execute([':url' => $url]);
-      } catch (Exception $e) {
-        echo 'Error writing to DB: ',  $e->getMessage(), "\n";
-      }
-    }
-  }
 
-  // // takes $urls array and uses data to update the links table
-  // public function insertLinks($urls) {
-  //   foreach ($urls as $url) {
-  //     // prepare sql statement
-  //     $sql = 'INSERT INTO links(url) VALUES(:url)';
-  //     $stmt = $this->pdo->prepare($sql);
-  //     try {
-  //       // execute sql insert statement
-  //       $stmt->execute([':url' => $url]);
-  //     } catch (Exception $e) {
-  //       echo 'Error writing to DB: ',  $e->getMessage(), "\n";
-  //     }
-  //   }
-  // }
-
-  // takes $urls array and uses data to update the links table
+  // takes $links multi-dimensional array and uses data to update the links table
   public function insertLinks($links) {
     foreach ($links as $link) {
       // prepare sql statement
@@ -237,7 +191,7 @@ class SQLiteInteract {
     }
   }
 
-  // returns all UNWORKED links found from site as array
+  // returns all links found from site as array
   public function retrieveLinks() {
     // prepare select statement
     $stmt = $this->pdo->query('SELECT id, url, type, include, worked FROM links');
@@ -261,36 +215,7 @@ class SQLiteInteract {
     return $linkdata;
   }
 
-  public function checkLinkExists($url) {
-    // prepare select statement
-    $stmt = $this->pdo->prepare('SELECT id FROM links WHERE url = :url');
-    try {
-      // execute sql select statement
-      $stmt->execute([':url' => $url]);
-    } catch (Exception $e) {
-      echo 'Error querying DB: ',  $e->getMessage(), "\n";
-    }
-    $linkdata = [];
-    while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-      // update with rows of data
-      $linkdata[] = [
-        'id' => $row['id']
-      ];
-    }
-    return $linkdata;
-  }
-
-  public function setLinkToWorked($url) {
-    // Prepare SQL Update Statement for setting link to 'worked'
-    $stmt = $this->pdo->prepare('UPDATE links SET worked = 1 where url = :url');
-    // try to execute sql update statement
-    try {
-      $stmt->execute([':url' => $url]);
-    } catch (Exception $e) {
-      echo 'Error querying DB: ',  $e->getMessage(), "\n";
-    }
-  }
-
+  // TO DO - Refactor as update Links
   public function setLinkToNotInclude($url) {
     // Prepare SQL Update Statement for setting link to 'not included'
     $stmt = $this->pdo->prepare('UPDATE links SET include = 0, worked = 1 where url = :url');
@@ -302,20 +227,7 @@ class SQLiteInteract {
     }
   }
 
-  public function setLinkPageType($url, $pagetype='unknown') {
-    // Prepare SQL Update Statement for setting link to 'not included'
-    $stmt = $this->pdo->prepare('UPDATE links SET type = :pagetype, worked = 1 where url = :url');
-    try {
-      // execute sql update statement
-      $stmt->execute([
-                  ':url' => $url,
-                  ':pagetype' => $pagetype
-                  ]);
-    } catch (Exception $e) {
-      echo 'Error writing to DB: ',  $e->getMessage(), "\n";
-    }
-  }
-
+  // refactor to use an array to populate with multiple reject urls (foreach)
   public function insertCityReject($url) {
     // prepare sql statement
     $sql = 'INSERT INTO city_rejects(url) VALUES(:url)';
@@ -388,7 +300,5 @@ class SQLiteInteract {
     }
     return $robotpages;
   }
-
-
 }
 ?>
