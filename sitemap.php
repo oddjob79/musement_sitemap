@@ -12,13 +12,21 @@ $pdo = (new SQLiteConnection())->connect();
 // instantiate the SQLiteInteract class
 $sqlite = new SQLiteInteract($pdo);
 
+// instantiate scanning library
+$scan = new CurlDataRetrieval();
+
+$linklist = $sqlite->retrieveLinks();
+$sitemapxml = $scan->createXMLFile($linklist);
+header('Content-Type: text/xml');
+// echo htmlspecialchars(file_get_contents($sitemapxml));
+echo $sitemapxml;
+exit();
+
 // use createTables method to create the db tables, if they don't already exist
 $sqlite->createTables();
 // insert starting data into db (top 20 cities, top 20 activities, link types)
 $sqlite->seedData();
 
-// instantiate scanning library
-$scan = new CurlDataRetrieval();
 
 // Set locale (probably scrap)
 $locale = 'es';
@@ -57,21 +65,20 @@ foreach ($sqlite->retrieveLinks() as $link) {
   $scan->scanURL($link['url'], $sqlite);
 }
 
-$linklist = $sqlite->retrieveLinks();
-foreach ($linklist as $link) {
-  if ($link['include']==1) {
-    echo '<br />'.$link['url'].'<br />';
-    if ($link['type']=='city') {
-      echo 'Priority: 0.7<br />';
-    } elseif ($link['type']=='event') {
-      echo 'Priority: 0.5<br />';
-    } else {
-      echo 'Priority: 1.0<br />';
-    }
 
-  }
-
-}
+// foreach ($linklist as $link) {
+//   if ($link['include']==1) {
+//     echo '<br />'.$link['url'].'<br />';
+//     if ($link['type']=='city') {
+//       echo 'Priority: 0.7<br />';
+//     } elseif ($link['type']=='event') {
+//       echo 'Priority: 0.5<br />';
+//     } else {
+//       echo 'Priority: 1.0<br />';
+//     }
+//
+//   }
+// }
 
 // Original logic below
 
@@ -122,7 +129,7 @@ foreach ($linklist as $link) {
 //
 
 
-// 
+//
 // echo '<br />Located Links:<br />';
 // var_dump($linksfound);
 
