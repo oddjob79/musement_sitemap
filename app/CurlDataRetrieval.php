@@ -18,6 +18,8 @@ class CurlDataRetrieval {
   // @param string $locale
   // @return array $output containing data retrieved from the API
   public function getAPIData($apiurl, $locale) {
+    // convert $locale to correct format. From "es" to "es-ES" for example
+    $locale = $locale.'-'.strtoupper($locale);
     // $url = 'https://api.musement.com/api/v3/cities';
     $ch = curl_init($apiurl);
     // allows a string to be set to the result of curl_exec
@@ -65,8 +67,7 @@ class CurlDataRetrieval {
     return $url;
   }
 
-  private function removeNonMusementLinks($url) {
-    $locale = 'es';
+  private function removeNonMusementLinks($url, $locale) {
     // $validurl will determine if we carry on processing url
     $validurl = 1;
     // Only evaluate musement.com links
@@ -202,7 +203,7 @@ class CurlDataRetrieval {
 
   // Find all links on the HTML Page and return array of 'new links'
   // private function scrapeLinks($xml, $sqlite) {
-  private function scrapeLinks($xml, $sqlite) {
+  private function scrapeLinks($xml, $sqlite, $locale) {
     $newlinks = array();
     // Loop through each <a> tag in the dom and add it to the links table
     foreach($xml->getElementsByTagName('a') as $link) {
@@ -210,7 +211,7 @@ class CurlDataRetrieval {
       $url = $this->relativeToAbsoluteLink($link->getAttribute('href'));
 
       // perform preWriteChecks on link before submitting it for db write
-      if ($this->removeNonMusementLinks($url) != 1) {
+      if ($this->removeNonMusementLinks($url, $locale) != 1) {
         continue;
       }
 
@@ -358,7 +359,7 @@ class CurlDataRetrieval {
   // pages you have discarded after scanning (non http 200s)
   // pages that should be written but not searched for additional links (non-musemennt.com pages)
   // public function scanURLs($linksfound, $sqlite) {
-  public function scanURL($url, $sqlite) {
+  public function scanURL($url, $sqlite, $locale) {
     // use curl to get page data
     $res = $this->getPageData($url);
     // error_log($url . ' scanned.<br />', 0);
@@ -432,7 +433,7 @@ class CurlDataRetrieval {
       error_log ('SiteMap Scraped', 0);
     }
 
-    $newlinks = $this->scrapeLinks($xml, $sqlite);
+    $newlinks = $this->scrapeLinks($xml, $sqlite, $locale);
     // retrieve list of links already in table, and return the url column only
     $currlinks = array_column($sqlite->retrieveLinks(), 'url');
     // return only urls not already in links table (in $newlinks but not in $currlinks)

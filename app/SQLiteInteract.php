@@ -73,15 +73,14 @@ class SQLiteInteract {
   // Inserts city id and url into cities table
   // @param int $id
   // @param string $url
-  private function insertCities() {
+  private function insertCities($locale) {
     // echo '<br />Size of city array = ', sizeof($this->retrieveCities());
-    // check if data already exists, if so, exit - TO DO Update for all locales (60)
-    if (sizeof($this->retrieveCities()) == 20) {
-      return;
-    }
+    // check if data already exists, if so, exit - TO DO Update for all locales (60) - don't need as deleting db each run
+    // if (sizeof($this->retrieveCities()) == 20) {
+    //   return;
+    // }
     // set vars for data retrieval
     $cityapiurl = 'https://api.musement.com/api/v3/cities?limit=20';
-    $locale = 'es-ES';
     // retrieve city data from api
     $citydata = (new CurlDataRetrieval())->getAPIData($cityapiurl, $locale);
     // run through each city array to insert to db
@@ -125,18 +124,17 @@ class SQLiteInteract {
     return $citydata;
   }
 
-  private function insertEvents() {
+  private function insertEvents($locale) {
     // retrieve top 20 cities
     $citydata = $this->retrieveCities();
-    // check if data already exists, if so, exit TO DO update for all locales (1200)
-    if (sizeof($this->retrieveEvents()) == 400) {
-      return;
-    }
+    // // check if data already exists, if so, exit TO DO update for all locales (1200) - do not need as deleting db each time
+    // if (sizeof($this->retrieveEvents()) == 400) {
+    //   return;
+    // }
     // retrieve top 20 activities per city and insert into database
     foreach ($citydata as $city) {
       // set vars for data retrieval
       $eventapiurl = 'https://api.musement.com/api/v3/cities/'.$city['id'].'/activities?limit=20';
-      $locale = 'es-ES';
       // retrieve event data from api for this city
       $eventdata = (new CurlDataRetrieval())->getAPIData($eventapiurl, $locale);
       foreach ($eventdata['data'] as $event) {
@@ -183,9 +181,9 @@ class SQLiteInteract {
     return $eventdata;
   }
 
-  public function seedData() {
-    $this->insertCities();
-    $this->insertEvents();
+  public function seedData($locale) {
+    $this->insertCities($locale);
+    $this->insertEvents($locale);
     $this->insertRobotPages();
   }
 
