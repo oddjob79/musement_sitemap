@@ -7,6 +7,7 @@ use App\SQLiteRead as SQLiteRead;
 use App\SQLiteWrite as SQLiteWrite;
 use App\SQLiteDBSetup as SQLiteDBSetup;
 use App\ScanURLs as ScanURLs;
+use App\BuildXML as BuildXML;
 
 // Check to see if we have already selected and posted the selected region
 if ($_POST['locale']) {
@@ -30,11 +31,6 @@ if ($_POST['locale']) {
 
 // Standard Scan - Can take quite a long time
   function standardScan($locale, $sqlread, $sqlwrite, $scan) {
-    // insert target into list of links to scan
-    $sqlwrite->insertLinks($seedurls);
-    // gather the links you will use to begin the while loop
-    $linksfound = $sqlread->retrieveLinks();
-
     // Set initial target urls
     $target = 'https://www.musement.com/'.$locale.'/';
     $seedurls = [
@@ -42,26 +38,18 @@ if ($_POST['locale']) {
       array('url'=>$target, 'type'=>'other', 'include'=>1)
     ];
 
-    // instantiate the SQLiteWrite class to write data to the database
-    $sqlwrite = new SQLiteWrite();
     // insert target into list of links to scan
     $sqlwrite->insertLinks($seedurls);
-    // instantiate the SQLiteRead class to read data from the database
-    $sqlread = new SQLiteRead();
     // gather the links you will use to begin the while loop
     $linksfound = $sqlread->retrieveLinks();
-
-    // instantiate scanning library for use inside the foreach loop
-    $scan = new ScanURLs();
 
     // set time limit for open connection to 5 minutes
     set_time_limit(1000);
 
     // while there are urls in the links table with worked == 0
-    $i=0;
-    while ($i<1 && array_search('0', array_column($linksfound, 'worked')) !== false) {
-      $i++;
-      // set the $lastlink var to the value of the last url in the array
+    while (!empty($sqlread->checkLinksToWork())) {
+    // while (array_search('0', array_column($linksfound, 'worked')) !== false) {
+    // set the $lastlink var to the value of the last url in the array
       $lastlink = end($linksfound)['url'];
       // for every link in the links table
       foreach ($linksfound as $link) {
@@ -102,16 +90,16 @@ if ($_POST['locale']) {
     $toscan = array_merge($citylinks, $eventlinks);
 
     // insert all urls into links table ready for processing
-    $sqlite->insertLinks($toscan);
+    $sqlwrite->insertLinks($toscan);
 
-    set_time_limit(60);
+    set_time_limit(120);
 
     $counter = 0;
     foreach ($sqlread->retrieveLinks() as $link) {
       $counter++;
       error_log('Processing: '.$link['url'].'  Counter = '.$counter, 0);
       // scan & process
-      $scan->scanURL($link['url'], $sqlite, $locale);
+      $scan->scanURL($link['url'], $locale);
     }
   }
 // end of liteScan

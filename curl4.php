@@ -1,5 +1,19 @@
 <?php
 
+// enable use of namespaces
+require 'vendor/autoload.php';
+
+use App\SQLiteRead as SQLiteRead;
+
+$sqlread = new SQLiteRead();
+$check = $sqlread->checkLinksToWork();
+
+var_dump($check);
+
+if (!empty($sqlread->checkLinksToWork())) {echo "<br />SHIX<br />";}
+
+echo "and now";
+
 $url = 'https://api.musement.com/api/v3/cities/2/activities?limit=20';
 $ch = curl_init($url);
 $locale = 'es-ES';

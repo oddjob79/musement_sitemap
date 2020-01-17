@@ -134,5 +134,25 @@ class SQLiteRead extends SQLiteConnection {
     }
     return $robotpages;
   }
+
+  public function checkLinksToWork() {
+    // prepare select statement
+    $stmt = $this->pdo->query('SELECT id FROM links WHERE include = 1 and worked = 0');
+    // create empty $linkcnt object
+    $linkcnt = [];
+    // fetch data from statement
+    try {
+      while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+        // update with rows of data
+        $linkcnt[] = [
+          'id' => $row['id']
+        ];
+      }
+    } catch (Exception $e) {
+      echo 'Error retrieving data: ',  $e->getMessage(), "\n";
+    }
+    return $linkcnt;
+  }
+
 }
 ?>

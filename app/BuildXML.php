@@ -8,13 +8,97 @@ require 'vendor/autoload.php';
 use \DOMDocument as DOMDocument;
 
 /**
- * Build XML Functions
+ * Contains function for building XML file
  */
 class BuildXML {
 
-  // @parameter $links contains array of links from db
-  // return xml file(name?)
-  // used https://programmerblog.net/how-to-generate-xml-files-using-php/ for help
+  /**
+  * File path and name
+  * Path to file for storing XML
+  * @var string
+  */
+    private $file;
+
+  /**
+  * DOMDocument Object
+  * @var object
+  */
+    private $dom;
+
+  /**
+  * XML Root Element
+  * String for storing the XML root element
+  * @var string
+  */
+    private $root;
+
+  /**
+  * Links information
+  * Array used for storing links information gathered from the links table
+  * @var array
+  */
+    private $links;
+
+  /**
+  * Link information
+  * Contains Value from the $links array, used in foreach loop
+  * @var string
+  */
+    private $link;
+
+  /**
+  * The link's URL
+  * Used for storing the URL for the link
+  * @var string
+  */
+    private $linkloc;
+
+  /**
+  * The Link's Priority
+  * Used for storing the Priority of the Link (0.5, 0.7 or 1.0), depending on the type of link
+  * @var string
+  */
+    private $linkpriority;
+
+  /**
+  * The URL XML element
+  * Object used to store the <url> data element
+  * @var object
+  */
+    private $url;
+
+  /**
+  * The loc XML element
+  * Object used to store the <loc> data element
+  * @var object
+  */
+    private $loc;
+
+  /**
+  * The priority XML element
+  * Object used to store the <priority> data element
+  * @var object
+  */
+    private $priority;
+
+  /**
+  * Output as XML string
+  * Used to store the XML so it can be output to HTML
+  * @var string
+  */
+    private $xmloutput;
+
+
+  /**
+  * Uses the $links data gathered from the links database table to loop through and generate XML in sitemap format, as specified
+  * in the https://www.sitemaps.org/protocol.html#sitemapXMLExample webpage
+  * As well as the URL, the createXMLFile method uses the page type to set the Priority, based on a city page requiring 0.7,
+  * an activity (or event) requiring a 0.5 priority and any other page requiring a 1.0 priority. Last Modified Date information
+  * was not available to be used.
+  * Used https://programmerblog.net/how-to-generate-xml-files-using-php/ to help build method
+  * @param $links Array of links from db
+  * @return string $xmloutput - contains XML for HTML rendering
+  */
   public function createXMLFile($links) {
     // specify file (and path) to be generated
     $file = 'sitemap.xml';
