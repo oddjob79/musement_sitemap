@@ -1,10 +1,11 @@
 curl2.php
+curl4.php
 index.php
 vendor/*
 php_info.php
 track moved functions.php
 sitemap.xml
-*.db
+db/*
 spare_parts.php
 muse_sitemap_es.xml
 xml_parse.php

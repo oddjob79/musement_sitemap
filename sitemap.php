@@ -2,11 +2,11 @@
 // enable use of namespaces
 require 'vendor/autoload.php';
 
-// use classes for SQLite connection
 use App\SQLiteConnection as SQLiteConnection;
-use App\SQLiteInteract as SQLiteInteract;
+use App\SQLiteRead as SQLiteRead;
+use App\SQLiteWrite as SQLiteWrite;
 use App\SQLiteDBSetup as SQLiteDBSetup;
-use App\CurlDataRetrieval as CurlDataRetrieval;
+use App\ScanURLs as ScanURLs;
 
 // Check to see if we have already selected and posted the selected region
 if ($_POST['locale']) {
@@ -16,7 +16,6 @@ if ($_POST['locale']) {
   $pdo = (new SQLiteConnection())->connect($init=1);
   // instantiate the SQLiteDBSetup class
   $dbsetup = new SQLiteDBSetup($pdo);
-
   // use createTables method to create the db tables, if they don't already exist
   $dbsetup->createTables();
   // insert starting data into db (top 20 cities, top 20 activities, link types)
@@ -32,15 +31,17 @@ if ($_POST['locale']) {
     array('url'=>$target, 'type'=>'other', 'include'=>1)
   ];
 
-  // instantiate the SQLiteInteract class
-  $sqlite = new SQLiteInteract($pdo);
+  // instantiate the SQLiteWrite class to write data to the database
+  $sqlwrite = new SQLiteWrite($pdo);
   // insert target into list of links to scan
-  $sqlite->insertLinks($seedurls);
+  $sqlwrite->insertLinks($seedurls);
+  // instantiate the SQLiteRead class to read data from the database
+  $sqlread = new SQLiteRead($pdo);
   // gather the links you will use to begin the while loop
-  $linksfound = $sqlite->retrieveLinks();
+  $linksfound = $sqlread->retrieveLinks();
 
   // instantiate scanning library for use inside the foreach loop
-  $scan = new CurlDataRetrieval();
+  $scan = new ScanURLs();
 
   // set time limit for open connection to 5 minutes
   set_time_limit(300);
@@ -59,16 +60,18 @@ if ($_POST['locale']) {
       // if this is the last link in the array, rebuild the array with all the links found during last processing run
       if ($link['url'] == $lastlink) {
         // gather list of links in table
-        $linksfound = $sqlite->retrieveLinks();
+        $linksfound = $sqlread->retrieveLinks();
       }
     }
   }
 
   // Finished populating tables, now build xml
   // retrieve the full link list from the db for the final time
-  $alllinks = $sqlite->retrieveLinks();
+  $alllinks = $sqlread->retrieveLinks();
   // create the xml file
-  $sitemapxml = $scan->createXMLFile($alllinks);
+  // instantiate BuildXML class
+  $bxml = new BuildXML();
+  $sitemapxml = $bxml->createXMLFile($alllinks);
   // output to browser
   header('Content-Type: text/xml');
   echo $sitemapxml;

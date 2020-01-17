@@ -11,6 +11,13 @@ curl_setopt($ch, CURLOPT_HTTPHEADER, [
 $res = curl_exec($ch);
 curl_close($ch);
 
+$testarr = array();
+array_push($testarr, array('url'=>'sitemap-p/', 'type'=>'other', 'include'=>1));
+array_push($testarr, array('url'=>'test', 'type'=>'other', 'include'=>1));
+array_push($testarr, array('url'=>'wibble', 'type'=>'wibble', 'include'=>0));
+
+var_dump($testarr);
+
 $activities = json_decode($res, true);
 
 foreach ($activities['data'] as $activity) {
