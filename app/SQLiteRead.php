@@ -5,12 +5,10 @@ namespace App;
 // enable use of namespaces
 require 'vendor/autoload.php';
 
-use App\CurlDataRetrieval as CurlDataRetrieval;
-
 /**
  * SQLite Read Data from Database
  */
-class SQLiteRead {
+class SQLiteRead extends SQLiteConnection {
 
   /**
    * PDO object
@@ -21,9 +19,9 @@ class SQLiteRead {
   /**
    * connect to the SQLite database
    */
-  public function __construct($pdo) {
-      $this->pdo = $pdo;
-  }
+   public function __construct() {
+       $this->pdo = $this->connect();
+   }
 
   // retrieves all citydata
   // return array containing city id, name, url

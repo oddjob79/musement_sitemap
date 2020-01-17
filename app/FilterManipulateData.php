@@ -6,6 +6,7 @@ namespace App;
 require 'vendor/autoload.php';
 
 use App\SQLiteWrite as SQLiteWrite;
+use App\SQLiteRead as SQLiteRead;
 use \DOMDocument as DOMDocument;
 
 /**
@@ -14,7 +15,7 @@ use \DOMDocument as DOMDocument;
 class FilterManipulateData {
 
   // Converts relative to Absolute links
-  private function relativeToAbsoluteLink($url) {
+  public function relativeToAbsoluteLink($url) {
     // if relative link then add protocol and domain (relative defined as none http and beginning with a slash)
     if (substr($url, 0, 4) != 'http' && substr($url, 0, 1) == '/') {
       $url = 'https://www.musement.com'.$url;
@@ -22,7 +23,7 @@ class FilterManipulateData {
     return $url;
   }
 
-  private function checkURLPath($url, $locale) {
+  public function checkURLPath($url, $locale) {
     // $include flag - set whether we include the link in the sitemap
     $include = 1;
     // Only evaluate musement.com links
@@ -34,7 +35,7 @@ class FilterManipulateData {
   }
 
   // filter out pages specified in robots.txt
-  private function checkRobotPages($url) {
+  public function checkRobotPages($url) {
     // $include flag - set whether we include the link in the sitemap
     $include = 1;
     // find the path of the url being checked
@@ -57,7 +58,7 @@ class FilterManipulateData {
 
   // TO DO - rename this method to something more suitable
   // filter run after scanning for http != 200
-  private function isHTTPError($pageinfo) {
+  public function isHTTPError($pageinfo) {
     // instantiate SQLiteWrite class
     $sqlwrite = new SQLiteWrite();
     // $validurl will determine if we carry on processing url
@@ -66,7 +67,7 @@ class FilterManipulateData {
     // Only evaluate links which are valid http codes (filter after scanning & before writing)
     if ($pageinfo['http_code'] != 200) {
       // Set the include flag to 0 in the links table
-      $sqlwrite->setLinkToNotInclude($pageinfo['url']);
+      $sqlwrite->updateLink($pageinfo['url'], 0);
       // set $validurl to 0 so we can stop processing this url
       $validurl = 0;
     }
@@ -86,7 +87,7 @@ class FilterManipulateData {
   }
 
   // Determines if the URL is a "top 20" activity / event and returns var determining validity
-  private function isTop20Event($url, $sqlite) {
+  public function isTop20Event($url) {
     // $include flag - set whether we include the link in the sitemap
     $include = 1;
     // instantiate SQLiteRead class

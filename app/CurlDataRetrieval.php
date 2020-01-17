@@ -37,7 +37,7 @@ class CurlDataRetrieval {
   }
 
   // use curl to retrieve page content and information for specified url
-  function getPageData($url) {
+  public function getPageData($url) {
     // create curl resource
     $ch = curl_init();
     // set url

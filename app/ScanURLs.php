@@ -49,7 +49,7 @@ class ScanURLs {
       }
     }
     // Loop through each <a> tag in the dom and add it to the links table
-    foreach($head->getElementsByTagName('a') as $link) {
+    foreach($xml->getElementsByTagName('a') as $link) {
       // isolate href attribute
       $url = $link->getAttribute('href');
       // add the newly found url to the array
@@ -62,6 +62,7 @@ class ScanURLs {
   // controls how the given url is scanned and parsed before deciding whether and how to create a db record for it
   // public function scanURLs($linksfound, $sqlite) {
   public function scanURL($url, $locale) {
+    error_log('Scanning '.$url, 0);
     // instantiate CurlDataRetrieval class
     $curl = new CurlDataRetrieval();
     // use curl to get page data
@@ -79,6 +80,7 @@ class ScanURLs {
       return;
     }
 
+    error_log('Scraping', 0);
     // scrape web page
     $alllinks = $this->scrapeLinks($pagecontent, $url);
     // split into two arrays. One for the new links found (standard)
@@ -111,50 +113,64 @@ class ScanURLs {
     // write all city links to table - consider merging with $linkstoadd and adding at the end
     $sqlwrite->insertLinks($citylinkstoadd);
 
-
-    // format and filter links
-    foreach ($newlinks as $link) {
-      // ensure the link is absolute
-      $url = $fmd->relativeToAbsoluteLink($link);
-      // if URL is non Musement.com - set include to 0
-      $include = $fmd->checkURLPath($url, $locale);
-      if ($include == 1) {
-        // is the URL set to be excluded by the robots.txt file?
-        $include = $fmd->checkRobotPages($url);
-      }
+    // set all relative links to absolute
+    foreach ($newlinks as $key => $link) {
+      $abslink = $fmd->relativeToAbsoluteLink($link);
+      $newlinks[$key] = $abslink;
     }
+
+    error_log('Filtering', 0);
     // filter out links previously in table
     // retrieve list of links already in table, and return the url column only
     $currlinks = array_column($sqlread->retrieveLinks(), 'url');
     // return only urls not already in links table (in $newlinks but not in $currlinks)
     $newlinks = array_diff($newlinks, $currlinks);
 
-
     // NEW LINK FILTERING
+
+    // NOT TRUE BELOW
     // Links are added to the link list as 'Not Include' links, so they can be ignored during reprocessing, but also included when comparing to avoid re-capturing rejected links
+
     // set $cityrejects as array containing previously rejected cities
     $cityrejects = $sqlread->retrieveCityRejects();
+
     // set $linkstoadd as empty array
     $linkstoadd = array();
+
     // loop through $newlinks to decide whether to add the links to the db for processing / inclusion in sitemap
-    foreach ($newlinks as $key => $newlink) {
+    foreach ($newlinks as $newlink) {
       // get the page type
       $viewtype = $fmd->findPageTypeFromURL($newlink);
 
+      // if URL is non Musement.com - set include to 0
+      $include = $fmd->checkURLPath($newlink, $locale);
+
+      // is the URL set to be excluded by the robots.txt file?
+      if ($include == 1) {
+        $include = $fmd->checkRobotPages($newlink);
+      }
+
       // does the url relate to a city on the city rejects list?
       // send array of cityrejects so don't have to re-query for each link
-      $include = $fmd->isCityReject($newlink, $cityrejects);
+      if ($include == 1) {
+        $include = $fmd->isCityReject($newlink, $cityrejects);
+      }
 
       // Then, filter out all activities which are not in the top activities list
       // We have decided it is an activity, and it relates to a top 20 city. Now we check if it is a top 20 event, set to not include, if not
       if ($viewtype == 'event' && $include == 1) {
         $include = $fmd->isTop20Event($newlink);
       }
+
       // update $linkstoadd with the url, view type and include flag
-      $linkstoadd[] = array('url'=>$newlink, 'type'=>$viewtype, 'include'=>$include);
+      if ($include == 1) {
+        $linkstoadd[] = array('url'=>$newlink, 'type'=>$viewtype, 'include'=>$include);
+      }
     }
+    error_log('Writing', 0);
     // insert links found on webpage to db as multi-dimensional array
-    $sqlite->insertLinks($linkstoadd);
+    $sqlwrite->insertLinks($linkstoadd);
+    $sqlwrite->updateLink($url, 1);
   }
 
 }

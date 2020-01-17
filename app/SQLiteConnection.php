@@ -15,18 +15,23 @@ class SQLiteConnection {
      * return in instance of the PDO object that connects to the SQLite database
      * @return \PDO
      */
-    public function connect($init=0) {
-        if ($init=1) {
-          unlink(Config::PATH_TO_SQLITE_FILE);
+    public function connect() {
+      if ($this->pdo == null) {
+        try {
+           $this->pdo = new \PDO("sqlite:" . Config::PATH_TO_SQLITE_FILE);
+        } catch (\PDOException $e) {
+           throw new Exception('Unable to connect to database.');
         }
-        if ($this->pdo == null) {
-          try {
-             $this->pdo = new \PDO("sqlite:" . Config::PATH_TO_SQLITE_FILE);
-          } catch (\PDOException $e) {
-             throw new Exception('Unable to connect to database.');
-          }
-        }
-        return $this->pdo;
+      }
+      return $this->pdo;
     }
+
+    /**
+     * delete database
+     */
+     public function deleteDatabase() {
+       unlink(Config::PATH_TO_SQLITE_FILE);
+     }
+
 }
 ?>

@@ -2,7 +2,7 @@
 
 namespace App;
 
-use App\SQLiteInteract as SQLiteInteract;
+use App\SQLiteRead as SQLiteRead;
 
 // enable use of namespaces
 require 'vendor/autoload.php';
@@ -10,7 +10,7 @@ require 'vendor/autoload.php';
 /**
  * SQLite Create DB Schema and seed data
  */
-class SQLiteDBSetup {
+class SQLiteDBSetup extends SQLiteConnection {
 
   /**
    * PDO object
@@ -21,8 +21,11 @@ class SQLiteDBSetup {
   /**
    * connect to the SQLite database
    */
-  public function __construct($pdo) {
-      $this->pdo = $pdo;
+  // Upon calling the DBSetup class, delete old database, create new db and create db schema
+  public function __construct() {
+      $this->deleteDatabase();
+      $this->pdo = $this->connect();
+      $this->createTables();
   }
 
   /**
@@ -91,9 +94,9 @@ class SQLiteDBSetup {
     // connect to sqlite db
     $pdo = (new SQLiteConnection())->connect();
     // instantiate the SQLiteDBSetup class
-    $sqlite = new SQLiteInteract($pdo);
+    $sqlread = new SQLiteRead($pdo);
     // retrieve top 20 cities
-    $citydata = $sqlite->retrieveCities();
+    $citydata = $sqlread->retrieveCities();
     // retrieve top 20 activities per city and insert into database
     foreach ($citydata as $city) {
       // set vars for data retrieval

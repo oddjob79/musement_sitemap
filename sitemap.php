@@ -12,58 +12,116 @@ use App\ScanURLs as ScanURLs;
 if ($_POST['locale']) {
   // delete log file
   unlink('/vagrant/logs/php_errors.log');
-  // connect to sqlite db, or create if not exists, use the $init flag to designate as the initial connection and delete existing db
-  $pdo = (new SQLiteConnection())->connect($init=1);
-  // instantiate the SQLiteDBSetup class
-  $dbsetup = new SQLiteDBSetup($pdo);
-  // use createTables method to create the db tables, if they don't already exist
-  $dbsetup->createTables();
-  // insert starting data into db (top 20 cities, top 20 activities, link types)
-  $dbsetup->seedData($locale);
-
   // set $locale from html form
   $locale = $_POST['locale'];
+  $scantype = $_POST['version'];
 
-  // Set initial target urls
-  $target = 'https://www.musement.com/'.$locale.'/';
-  $seedurls = [
-    array('url'=>$target.'sitemap-p/', 'type'=>'other', 'include'=>1),
-    array('url'=>$target, 'type'=>'other', 'include'=>1)
-  ];
+  // instantiate the SQLiteDBSetup class - deletes old db, creates new one with schema
+  $dbsetup = new SQLiteDBSetup();
+  // insert starting data into db (top 20 cities, top 20 activities, robot pages)
+  $dbsetup->seedData($locale);
 
   // instantiate the SQLiteWrite class to write data to the database
-  $sqlwrite = new SQLiteWrite($pdo);
-  // insert target into list of links to scan
-  $sqlwrite->insertLinks($seedurls);
+  $sqlwrite = new SQLiteWrite();
   // instantiate the SQLiteRead class to read data from the database
-  $sqlread = new SQLiteRead($pdo);
-  // gather the links you will use to begin the while loop
-  $linksfound = $sqlread->retrieveLinks();
-
+  $sqlread = new SQLiteRead();
   // instantiate scanning library for use inside the foreach loop
   $scan = new ScanURLs();
 
-  // set time limit for open connection to 5 minutes
-  set_time_limit(300);
+// Standard Scan - Can take quite a long time
+  function standardScan($locale, $sqlread, $sqlwrite, $scan) {
+    // insert target into list of links to scan
+    $sqlwrite->insertLinks($seedurls);
+    // gather the links you will use to begin the while loop
+    $linksfound = $sqlread->retrieveLinks();
 
-  // while there are urls in the links table with worked == 0
-  while (array_search('0', array_column($linksfound, 'worked')) !== false) {
-    // set the $lastlink var to the value of the last url in the array
-    $lastlink = end($linksfound)['url'];
-    // for every link in the links table
-    foreach ($linksfound as $link) {
-      // only process "unworked" links
-      if ($link['worked']==0) {
-        // scan & process
-        $scan->scanURL($link['url'], $sqlite, $locale);
-      }
-      // if this is the last link in the array, rebuild the array with all the links found during last processing run
-      if ($link['url'] == $lastlink) {
-        // gather list of links in table
-        $linksfound = $sqlread->retrieveLinks();
+    // Set initial target urls
+    $target = 'https://www.musement.com/'.$locale.'/';
+    $seedurls = [
+      array('url'=>$target.'sitemap-p/', 'type'=>'other', 'include'=>1),
+      array('url'=>$target, 'type'=>'other', 'include'=>1)
+    ];
+
+    // instantiate the SQLiteWrite class to write data to the database
+    $sqlwrite = new SQLiteWrite();
+    // insert target into list of links to scan
+    $sqlwrite->insertLinks($seedurls);
+    // instantiate the SQLiteRead class to read data from the database
+    $sqlread = new SQLiteRead();
+    // gather the links you will use to begin the while loop
+    $linksfound = $sqlread->retrieveLinks();
+
+    // instantiate scanning library for use inside the foreach loop
+    $scan = new ScanURLs();
+
+    // set time limit for open connection to 5 minutes
+    set_time_limit(1000);
+
+    // while there are urls in the links table with worked == 0
+    $i=0;
+    while ($i<1 && array_search('0', array_column($linksfound, 'worked')) !== false) {
+      $i++;
+      // set the $lastlink var to the value of the last url in the array
+      $lastlink = end($linksfound)['url'];
+      // for every link in the links table
+      foreach ($linksfound as $link) {
+        // only process "unworked" links & "include" links
+        if ($link['worked'] == 0 && $link['include'] == 1) {
+          // scan & process
+          $scan->scanURL($link['url'], $locale);
+        }
+        // if this is the last link in the array, rebuild the array with all the links found during last processing run
+        if ($link['url'] == $lastlink) {
+          // gather list of links in table
+          $linksfound = $sqlread->retrieveLinks();
+        }
       }
     }
   }
+  // end of standardScan
+
+  // more lightweight scan with plenty of shortcuts - if you don't like waiting
+  function liteScan($locale, $sqlread, $sqlwrite, $scan) {
+    // gather city urls only
+    $cities = array_column($sqlread->retrieveCities(), 'url');
+    // generate new array containing urls and city type for sending to links table
+    $citylinks = array();
+    foreach ($cities as $city) {
+      $citylinks[] = array('url'=>$city, 'type'=>'city', 'include'=>1);
+    }
+
+    // gather activity urls only
+    $events = array_column($sqlread->retrieveEvents(), 'url');
+    // generate new array containing urls and city type for sending to links table
+    $eventlinks = array();
+    foreach ($events as $event) {
+      $eventlinks[] = array('url'=>$event, 'type'=>'event', 'include'=>1);
+    }
+
+    // merge all city and activity urls together
+    $toscan = array_merge($citylinks, $eventlinks);
+
+    // insert all urls into links table ready for processing
+    $sqlite->insertLinks($toscan);
+
+    set_time_limit(60);
+
+    $counter = 0;
+    foreach ($sqlread->retrieveLinks() as $link) {
+      $counter++;
+      error_log('Processing: '.$link['url'].'  Counter = '.$counter, 0);
+      // scan & process
+      $scan->scanURL($link['url'], $sqlite, $locale);
+    }
+  }
+// end of liteScan
+
+  if ($scantype == 'standard') {
+    standardScan($locale, $sqlread, $sqlwrite, $scan);
+  } elseif ($scantype == 'lite') {
+    liteScan($locale, $sqlread, $sqlwrite, $scan);
+  }
+
 
   // Finished populating tables, now build xml
   // retrieve the full link list from the db for the final time

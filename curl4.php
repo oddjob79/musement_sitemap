@@ -11,6 +11,14 @@ curl_setopt($ch, CURLOPT_HTTPHEADER, [
 $res = curl_exec($ch);
 curl_close($ch);
 
+$arr = array(1, 2, 3, 4, 5);
+var_dump($arr);
+foreach ($arr as $key => $value) {
+  $arr[$key]=$value+1;
+  // code...
+}
+var_dump($arr);
+exit();
 $testarr = array();
 array_push($testarr, array('url'=>'sitemap-p/', 'type'=>'other', 'include'=>1));
 array_push($testarr, array('url'=>'test', 'type'=>'other', 'include'=>1));

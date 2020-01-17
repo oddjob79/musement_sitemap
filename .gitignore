@@ -9,3 +9,4 @@ db/*
 spare_parts.php
 muse_sitemap_es.xml
 xml_parse.php
+sitemap_lite.php
