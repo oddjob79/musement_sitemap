@@ -17,6 +17,7 @@ if ($_POST['locale']) {
   // set $locale from html form
   $locale = $_POST['locale'];
   $scantype = $_POST['version'];
+  $filename = $_POST['filename'];
 
   // instantiate the SQLiteDBSetup class - deletes old db, creates new one with schema
   $dbsetup = new SQLiteDBSetup();
@@ -27,9 +28,17 @@ if ($_POST['locale']) {
   $scanopt = new ScanOptions();
   // which scan level chosen
   if ($scantype == 'standard') {
-    $scanopt->standardScan($locale);
+    try {
+      $scanopt->standardScan($locale);
+    } catch (Exception $e) {
+      die( $e->__toString() );
+    }
   } elseif ($scantype == 'lite') {
-    $scanopt->liteScan($locale);
+    try {
+      $scanopt->liteScan($locale);
+    } catch (Exception $e) {
+      die( $e->__toString() );
+    }
   }
 
   // Finished populating tables, now build xml
@@ -40,7 +49,11 @@ if ($_POST['locale']) {
   // create the xml file
   // instantiate BuildXML class
   $bxml = new BuildXML($alllinks);
-  $sitemapxml = $bxml->createXMLFile();
+  try {
+    $sitemapxml = $bxml->createXMLFile($filename);
+  } catch (Exception $e) {
+    die( $e->__toString() );
+  }
   // output to browser
   header('Content-Type: text/xml');
   echo $sitemapxml;
@@ -61,11 +74,13 @@ if ($_POST['locale']) {
         <option value="fr">fr-FR</option>
       </select>
     <br />
-      Select version:
+      Select version of scan:
       <select name="version">
         <option value="standard">Standard</option>
         <option value="lite" selected="selected">Lite</option>
       </select>
+    <br />
+      XML Filename and (relative) path: <input type="text" name="filename">
     <br />
       <input type="submit" value="Scan Now"/>
     </form>

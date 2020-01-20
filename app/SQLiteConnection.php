@@ -20,7 +20,7 @@ class SQLiteConnection {
         try {
            $this->pdo = new \PDO("sqlite:" . Config::PATH_TO_SQLITE_FILE);
         } catch (\PDOException $e) {
-           throw new Exception('Unable to connect to database.');
+           throw new \Exception('Unable to connect to database.');
         }
       }
       return $this->pdo;

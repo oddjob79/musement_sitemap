@@ -6,7 +6,8 @@
     },
     "require": {
         "jms/serializer": "1.7.*",
-        "phpdocumentor/phpdocumentor": "^2.9"
+        "phpdocumentor/phpdocumentor": "^2.9",
+        "phpunit/phpunit": "^8"
     },
     "require-dev": {
     }

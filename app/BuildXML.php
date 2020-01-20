@@ -24,6 +24,11 @@ class BuildXML {
   */
   public function __construct($links) {
     $this->links = $this->sortLinks($links);
+    if (!isset($links)) {
+      throw new \Exception(
+        "No data provided to build XML. Check links table for valid data."
+      );
+    }
   }
 
   /**
@@ -32,14 +37,27 @@ class BuildXML {
   * As well as the URL, the createXMLFile method uses the page type to set the Priority, based on a city page requiring 0.7,
   * an activity (or event) requiring a 0.5 priority and any other page requiring a 1.0 priority. Last Modified Date information
   * was not available to be used.
+  * Generates an XML file based on the file given, and returns a string for HTML rendering
   * Used https://programmerblog.net/how-to-generate-xml-files-using-php/ to help build method
+  * @param string $filename - name of the XML file to be generated
   * @return string $xmloutput - contains XML for HTML rendering
   */
-  public function createXMLFile() {
-    // specify file (and path) to be generated
-    $file = 'sitemap.xml';
+  public function createXMLFile($filename) {
+    // check filename
+    if (!isset($filename)) {
+      throw new \Exception(
+        "No file name given. Please complete the form fully and resubmit."
+      );
+    }
+    if (file_exists($filename)) {
+      throw new \Exception(
+        "File '$filename' already exists. Please select a different one, and resubmit."
+      );
+    }
     // instantiate DOMDocument class and specify xml version and encoding
     $dom = new DOMDocument('1.0', 'utf-8');
+    // make sure output is formatted
+    $dom->formatOutput=true;
     // set root element name
     $root = $dom->createElementNS('http://www.sitemaps.org/schemas/sitemap/0.9', 'urlset');
 
@@ -76,7 +94,13 @@ class BuildXML {
     // add root element
     $dom->appendChild($root);
     // save to file
-    $dom->save($file);
+    $dom->save($filename);
+    // check if file has saved correctly
+    if (!file_exists($filename)) {
+      throw new \Exception(
+        "XML file '$filename' was not created. Please try again."
+      );
+    }
 
     // format XML as HTML ready output string
     $xmloutput = $dom->saveXML();

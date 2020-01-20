@@ -61,6 +61,11 @@ class ScanOptions {
     $this->sqlwrite->insertLinks($seedurls);
     // gather the links you will use to begin the while loop
     $linksfound = $this->sqlread->retrieveLinks();
+    if (!isset($linksfound)) {
+      throw new \Exception(
+        "No links found in table. Unable to begin processing."
+      );
+    }
 
     // set time limit for open connection to 5 minutes
     set_time_limit(1000);
@@ -114,6 +119,13 @@ class ScanOptions {
 
     // insert all urls into links table ready for processing
     $this->sqlwrite->insertLinks($toscan);
+
+    // validate starting data
+    if (count($this->sqlread->retrieveLinks()) != 420) {
+      throw new \Exception(
+        "Unexpected starting data set, should be 420 links to scan. Validate data and restart."
+      );
+    }
 
     set_time_limit(120);
 
