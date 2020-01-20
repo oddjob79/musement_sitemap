@@ -9,15 +9,36 @@ use App\SQLiteRead as SQLiteRead;
 use App\SQLiteWrite as SQLiteWrite;
 use App\ScanURLs as ScanURLs;
 
+/**
+ * Functions used prepare for and execute different scan types
+*/
 class ScanOptions {
 
+  /**
+  * Instantiated classes of objects used in all functions in this class
+  * @var object
+  */
+  private $sqlread;
+  private $sqlwrite;
+  private $scan;
+
+  /**
+   * Class constructor method, instantiates common classes used in all functions and assigns them to properties
+  */
   public function __construct() {
     $this->sqlread = new SQLiteRead();
     $this->sqlwrite = new SQLiteWrite();
     $this->scan = new ScanURLs;
   }
 
-// Standard Scan - Can take quite a long time
+  /**
+  * Method which triggers the "standard" web site scan. It takes a long time to run, but is more thorough than the "lite" scan.
+  * Uses the locale and sets the initial pages to be scanned as the homepage for that locale, and the sitemap-p page.
+  * The sitemap page is then used to gather all cities and build a list of "city rejects", from which all other pages can be compared.
+  * Each page that is scanned will potentially update the links table with yet more links to scan, so the while loop has to check
+  * if there are any links which need to be scanned each time before proceeding, using the SQLiteRead->checkLinksToWork method
+  * @param $locale - the site locale, as selected on the HTML form
+  */
   public function standardScan($locale) {
     // Set initial target urls
     $target = 'https://www.musement.com/'.$locale.'/';
@@ -44,7 +65,7 @@ class ScanOptions {
         // only process "unworked" links & "include" links
         if ($link['worked'] == 0 && $link['include'] == 1) {
           // scan & process
-          $scan->scanURL($link['url'], $locale);
+          $this->scan->scanURL($link['url'], $locale);
         }
         // if this is the last link in the array, rebuild the array with all the links found during last processing run
         if ($link['url'] == $lastlink) {
@@ -55,7 +76,12 @@ class ScanOptions {
     }
   }
 
-  // more lightweight scan with plenty of shortcuts - if you don't like waiting
+  /**
+  * Method which triggers the "lite" web site scan. This does not take long to run, but is not very thorough. It uses the API to gather
+  * all "top 20" cities and events, and simply scans these pages for other links. It does not then scan these pages, so does not know if
+  * the pages are valid, or if ant subsequent pages are to be found.
+  * @param $locale - the site locale, as selected on the HTML form
+  */
   public function liteScan($locale) {
     // gather city urls only
     $cities = array_column($this->sqlread->retrieveCities(), 'url');

@@ -6,18 +6,20 @@ namespace App;
 require 'vendor/autoload.php';
 
 /**
- * cURL Functions
+ * Collection of functions used to gather data from external servers
  */
 class CurlDataRetrieval {
 
-  // Uses API URL and locale to retrieve data from the API and send back an array of json elements
-  // @param string $apiurl
-  // @param string $locale
-  // @return array $output containing data retrieved from the API
+  /**
+  * Takes the API URL and locale, and uses cURL request to retrieve data from the API, then return an array of json elements
+  * @param string $apiurl
+  * @param string $locale
+  * @return array $output containing data retrieved from the API
+  */
   public function getAPIData($apiurl, $locale) {
     // convert $locale to correct format. From "es" to "es-ES" for example
     $locale = $locale.'-'.strtoupper($locale);
-    // $url = 'https://api.musement.com/api/v3/cities';
+    // initialize curl request
     $ch = curl_init($apiurl);
     // allows a string to be set to the result of curl_exec
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -36,6 +38,11 @@ class CurlDataRetrieval {
 
   }
 
+  /**
+  * Takes a url, then uses cURL to retrieve page information and the actual page data from the given URL
+  * @param string $url
+  * @return array contains an array of page info, gathered using the curl_getinfo command, and page content, gathered using the curl_exec command
+  */
   // use curl to retrieve page content and information for specified url
   public function getPageData($url) {
     // create curl resource

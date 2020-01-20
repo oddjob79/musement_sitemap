@@ -8,22 +8,31 @@ require 'vendor/autoload.php';
 use \DOMDocument as DOMDocument;
 
 /**
- * Contains function for building XML file
+ * Contains functions used for building XML file
  */
 class BuildXML {
 
+  /**
+  * Array of links, sorted by number of slashes in the path of the URL
+  * @var array
+  */
+  private $links;
+
+  /**
+  * Requires $links data gathered from the links database table as an array and uses the sortLinks method to prepare the links for the XML file creation
+  * @param array $links Array of links returned from db
+  */
   public function __construct($links) {
     $this->links = $this->sortLinks($links);
   }
 
   /**
-  * Uses the $links data gathered from the links database table to loop through and generate XML in sitemap format, as specified
+  * Uses $this->links array, sorted via the sortLinks method, to loop through and generate XML in sitemap format, as specified
   * in the https://www.sitemaps.org/protocol.html#sitemapXMLExample webpage
   * As well as the URL, the createXMLFile method uses the page type to set the Priority, based on a city page requiring 0.7,
   * an activity (or event) requiring a 0.5 priority and any other page requiring a 1.0 priority. Last Modified Date information
   * was not available to be used.
   * Used https://programmerblog.net/how-to-generate-xml-files-using-php/ to help build method
-  * @param $links Array of links returned from db
   * @return string $xmloutput - contains XML for HTML rendering
   */
   public function createXMLFile() {
@@ -74,6 +83,11 @@ class BuildXML {
     return $xmloutput;
   }
 
+  /**
+  * Called during class construction, takes the links array and sorts according to the number of slashes in the path, so you should get the root first
+  * @param array $links - array of links returned from db
+  * @return array $links - sorted list of links used to create XML file
+  */
   private function sortLinks($links) {
     // sort array by number of slashes found in the URL path in order to prioritize cities to aid prefiltering
     usort($links, function($a, $b) {
