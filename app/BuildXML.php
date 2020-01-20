@@ -12,82 +12,9 @@ use \DOMDocument as DOMDocument;
  */
 class BuildXML {
 
-  /**
-  * File path and name
-  * Path to file for storing XML
-  * @var string
-  */
-    private $file;
-
-  /**
-  * DOMDocument Object
-  * @var object
-  */
-    private $dom;
-
-  /**
-  * XML Root Element
-  * String for storing the XML root element
-  * @var string
-  */
-    private $root;
-
-  /**
-  * Links information
-  * Array used for storing links information gathered from the links table
-  * @var array
-  */
-    private $links;
-
-  /**
-  * Link information
-  * Contains Value from the $links array, used in foreach loop
-  * @var string
-  */
-    private $link;
-
-  /**
-  * The link's URL
-  * Used for storing the URL for the link
-  * @var string
-  */
-    private $linkloc;
-
-  /**
-  * The Link's Priority
-  * Used for storing the Priority of the Link (0.5, 0.7 or 1.0), depending on the type of link
-  * @var string
-  */
-    private $linkpriority;
-
-  /**
-  * The URL XML element
-  * Object used to store the <url> data element
-  * @var object
-  */
-    private $url;
-
-  /**
-  * The loc XML element
-  * Object used to store the <loc> data element
-  * @var object
-  */
-    private $loc;
-
-  /**
-  * The priority XML element
-  * Object used to store the <priority> data element
-  * @var object
-  */
-    private $priority;
-
-  /**
-  * Output as XML string
-  * Used to store the XML so it can be output to HTML
-  * @var string
-  */
-    private $xmloutput;
-
+  public function __construct($links) {
+    $this->links = $this->sortLinks($links);
+  }
 
   /**
   * Uses the $links data gathered from the links database table to loop through and generate XML in sitemap format, as specified
@@ -96,10 +23,10 @@ class BuildXML {
   * an activity (or event) requiring a 0.5 priority and any other page requiring a 1.0 priority. Last Modified Date information
   * was not available to be used.
   * Used https://programmerblog.net/how-to-generate-xml-files-using-php/ to help build method
-  * @param $links Array of links from db
+  * @param $links Array of links returned from db
   * @return string $xmloutput - contains XML for HTML rendering
   */
-  public function createXMLFile($links) {
+  public function createXMLFile() {
     // specify file (and path) to be generated
     $file = 'sitemap.xml';
     // instantiate DOMDocument class and specify xml version and encoding
@@ -108,7 +35,7 @@ class BuildXML {
     $root = $dom->createElementNS('http://www.sitemaps.org/schemas/sitemap/0.9', 'urlset');
 
     // loop through the $links array and add elements into the xml
-    foreach ($links as $link) {
+    foreach ($this->links as $link) {
       if ($link['include'] == 1) {
         // set loc attribute per link
         $linkloc = $link['url'];
@@ -146,4 +73,14 @@ class BuildXML {
     $xmloutput = $dom->saveXML();
     return $xmloutput;
   }
+
+  private function sortLinks($links) {
+    // sort array by number of slashes found in the URL path in order to prioritize cities to aid prefiltering
+    usort($links, function($a, $b) {
+        return substr_count(parse_url($a['url'], PHP_URL_PATH), '/') - substr_count(parse_url($b['url'], PHP_URL_PATH), '/');
+    });
+
+    return $links;
+  }
+
 }

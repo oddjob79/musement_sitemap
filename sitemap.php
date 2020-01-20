@@ -11,23 +11,20 @@ use App\BuildXML as BuildXML;
 
 // Check to see if we have already selected and posted the selected region
 if ($_POST['locale']) {
-  // delete log file
-  unlink('/vagrant/logs/php_errors.log');
-  // set $locale from html form
-  $locale = $_POST['locale'];
-  $scantype = $_POST['version'];
 
-  // instantiate the SQLiteDBSetup class - deletes old db, creates new one with schema
-  $dbsetup = new SQLiteDBSetup();
-  // insert starting data into db (top 20 cities, top 20 activities, robot pages)
-  $dbsetup->seedData($locale);
+  function dbPrep() {
+    // delete log file
+    unlink('/vagrant/logs/php_errors.log');
+    // set $locale from html form
+    $locale = $_POST['locale'];
+    $scantype = $_POST['version'];
 
-  // instantiate the SQLiteWrite class to write data to the database
-  $sqlwrite = new SQLiteWrite();
-  // instantiate the SQLiteRead class to read data from the database
-  $sqlread = new SQLiteRead();
-  // instantiate scanning library for use inside the foreach loop
-  $scan = new ScanURLs();
+    // instantiate the SQLiteDBSetup class - deletes old db, creates new one with schema
+    $dbsetup = new SQLiteDBSetup();
+    // insert starting data into db (top 20 cities, top 20 activities, robot pages)
+    $dbsetup->seedData($locale);
+
+  }
 
 // Standard Scan - Can take quite a long time
   function standardScan($locale, $sqlread, $sqlwrite, $scan) {
@@ -104,6 +101,19 @@ if ($_POST['locale']) {
   }
 // end of liteScan
 
+
+/**
+* Code to start the process of running scan
+*/
+  // delete old db, create a new one and seed it with starting data
+  dbPrep();
+  // instantiate the SQLiteWrite class to write data to the database
+  $sqlwrite = new SQLiteWrite();
+  // instantiate the SQLiteRead class to read data from the database
+  $sqlread = new SQLiteRead();
+  // instantiate scanning library for use inside the foreach loop
+  $scan = new ScanURLs();
+
   if ($scantype == 'standard') {
     standardScan($locale, $sqlread, $sqlwrite, $scan);
   } elseif ($scantype == 'lite') {
@@ -116,8 +126,8 @@ if ($_POST['locale']) {
   $alllinks = $sqlread->retrieveLinks();
   // create the xml file
   // instantiate BuildXML class
-  $bxml = new BuildXML();
-  $sitemapxml = $bxml->createXMLFile($alllinks);
+  $bxml = new BuildXML($alllinks);
+  $sitemapxml = $bxml->createXMLFile();
   // output to browser
   header('Content-Type: text/xml');
   echo $sitemapxml;
