@@ -10,3 +10,8 @@ spare_parts.php
 muse_sitemap_es.xml
 xml_parse.php
 sitemap_lite.php
+version_1/*
+curl1.php
+sitemap_old.xml
+sitemap.xml
+app/Config.php
