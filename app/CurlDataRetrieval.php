@@ -43,7 +43,6 @@ class CurlDataRetrieval {
   * @param string $url
   * @return array contains an array of page info, gathered using the curl_getinfo command, and page content, gathered using the curl_exec command
   */
-  // use curl to retrieve page content and information for specified url
   public function getPageData($url) {
     // create curl resource
     $ch = curl_init();

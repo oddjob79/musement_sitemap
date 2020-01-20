@@ -10,11 +10,15 @@ use App\SQLiteRead as SQLiteRead;
 use \DOMDocument as DOMDocument;
 
 /**
- * Contains methods related to filtering out unwanted data or manipulating during scan
+ * Contains methods related to filtering out unwanted data or manipulating data during scan
  */
 class FilterManipulateData {
 
-  // Converts relative to Absolute links
+  /**
+  * Takes a given URL and, if relative, converts it to an absolute URL, then returns it as a string
+  * @param string $url - to be checked and / or converted
+  * @return string $url - converted or checked
+  */
   public function relativeToAbsoluteLink($url) {
     // if relative link then add protocol and domain (relative defined as none http and beginning with a slash)
     if (substr($url, 0, 4) != 'http' && substr($url, 0, 1) == '/') {
@@ -23,6 +27,12 @@ class FilterManipulateData {
     return $url;
   }
 
+  /**
+  * Takes a given URL and checks to see if the path matches the string 'www.musement.com', with the given locale. Returns a 1 if true, or a 0 if false.
+  * @param string $url - the url to be checked
+  * @param string $locale - the locale to be checked
+  * @return int $include - really a boolean, 1 or 0, depending on whether the url is designated as 'valid'.
+  */
   public function checkURLPath($url, $locale) {
     // $include flag - set whether we include the link in the sitemap
     $include = 1;
@@ -34,7 +44,12 @@ class FilterManipulateData {
     return $include;
   }
 
-  // filter out pages specified in robots.txt
+  /**
+  * Takes a given URL and checks to see if the URL matches one of the URLs given in the site's robots.txt file.
+  * These "robot urls" are stored in the db. Returns a 1 or 0, depending on if the URL matches a robot URL, or not.
+  * @param string $url - the url to be checked
+  * @return int $include - really a boolean, 1 or 0, depending on whether the url is designated as 'valid'.
+  */
   public function checkRobotPages($url) {
     // $include flag - set whether we include the link in the sitemap
     $include = 1;
@@ -56,8 +71,12 @@ class FilterManipulateData {
     return $include;
   }
 
-  // TO DO - rename this method to something more suitable
-  // filter run after scanning for http != 200
+  /**
+  * Takes the web page information, as gathered via the curl_getinfo command and checks to see if the URL returns an HTTP 200 code.
+  * If not, the page is designated as 'invalid'. Returns a 1 or 0, depending on if there is an HTTP error, or not.
+  * @param array $pageinfo - page information gathered via the curl_getinfo command
+  * @return int $validurl - really a boolean, 1 or 0, depending on whether the url is designated as 'valid'.
+  */
   public function isHTTPError($pageinfo) {
     // instantiate SQLiteWrite class
     $sqlwrite = new SQLiteWrite();
@@ -75,7 +94,12 @@ class FilterManipulateData {
     return $validurl;
   }
 
-  // Takes the url passed to it and returns a url containing only the 'stem' (i.e. the url of the city the page relates to)
+  /**
+  * Takes a given URL, and strips the path information down to include only the Scheme, Host, locale and the first "element" of the path,
+  * then returns the result as a string. This allows us to see what city the URL relates to.
+  * @param string $url - the URL to be converted
+  * @return string $cityurl - the URL converted into it's "city" component only
+  */
   public function buildCityURL($url) {
     // remove everything after the second element in the url path to see if it is a city page or the child of city page
     $path = parse_url($url, PHP_URL_PATH);
@@ -86,7 +110,12 @@ class FilterManipulateData {
     return $cityurl;
   }
 
-  // Determines if the URL is a "top 20" activity / event and returns var determining validity
+  /**
+  * Takes a given URL, and checks to see if it matches a URL contained in the events database table. This designates it as a "top 20 event".
+  * Returns a 1 or 0, depending on if it is found or not.
+  * @param string $url - the URL to be checked
+  * @return int $include - really a boolean, 1 or 0, depending on whether the url is found in the events table.
+  */
   public function isTop20Event($url) {
     // $include flag - set whether we include the link in the sitemap
     $include = 1;
@@ -103,11 +132,16 @@ class FilterManipulateData {
     return $include;
   }
 
-  public function findPageTypeFromURL($link) {
+  /**
+  * Takes a given URL, and based on the format of the URL, decides what type of page it is. Returns the page or 'view' type as a string.
+  * @param string $url - the URL to be analysed
+  * @return string $viewtype - the type of page it is (other, event, city, unknown).
+  */
+  public function findPageTypeFromURL($url) {
     $viewtype = '';
     // Set view type for newly added link based on url format
     // extract path for ease of use
-    $path = parse_url($link, PHP_URL_PATH);
+    $path = parse_url($url, PHP_URL_PATH);
     // if last 2 characters before the last slash are one of '-p', '-v', '-t', '-l', '-c'
     if (in_array(substr($path, -3, 2), array('-p', '-v', '-t', '-l', '-c'))) {
       // it's an "other" type of page
@@ -129,14 +163,19 @@ class FilterManipulateData {
     return $viewtype;
   }
 
-  // Filter out all links which have a rejected city 'stem'
-  public function isCityReject($link, $cityrejects) {
+  /**
+  * Takes a given URL, and an array of cities which have been included on the "rejects" list and stored in the database,
+  * then uses the buildCityURL method to find the city which the url is related to and checks to see if the city is on the rejects list.
+  * Returns a 1 or a 0, depending on if it is found.
+  * @param string $url - the URL to be checked
+  * @param array $cityrejects - an array containing all the city urls which have been previously identified as "non top 20"
+  * @return int $include - really a boolean, 1 or 0, depending on whether the "city" part of the url is found in the $cityrejects array.
+  */
+  public function isCityReject($url, $cityrejects) {
     // $include flag - set whether we include the link in the sitemap
     $include = 1;
-    // instantiate SQLiteRead class
-    $sqlread = new SQLiteRead();
     // find the city this url relates to
-    $cityurl = $this->buildCityURL($link);
+    $cityurl = $this->buildCityURL($url);
     // check to see if the $cityurl is in the $cityrejects list, set to not include, if so
     if (array_search($cityurl, array_column($cityrejects, 'url'))) {
       $include = 0;

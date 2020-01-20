@@ -114,7 +114,7 @@
                         <ul class="dropdown-menu">
                             <li>
                                 <a href="../reports/errors.html">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <i class="icon-list-alt"></i>&#160;Errors <span class="label label-info pull-right">71</span>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <i class="icon-list-alt"></i>&#160;Errors <span class="label label-info pull-right">11</span>
                                 </a>
                             </li>
                             <li>
@@ -144,27 +144,27 @@
                                 <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle " data-toggle="collapse" data-target="#namespace-777208624"></a>
+                                    <a class="accordion-toggle " data-toggle="collapse" data-target="#namespace-1029803509"></a>
                                 <a href="../namespaces/default.html" style="margin-left: 30px; padding-left: 0">\</a>
             </div>
-            <div id="namespace-777208624" class="accordion-body collapse in">
+            <div id="namespace-1029803509" class="accordion-body collapse in">
                 <div class="accordion-inner">
 
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1958504807"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-293574192"></a>
                                 <a href="../namespaces/App.html" style="margin-left: 30px; padding-left: 0">App</a>
             </div>
-            <div id="namespace-1958504807" class="accordion-body collapse ">
+            <div id="namespace-293574192" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
                     <ul>
                                                                                                     <li class="class"><a href="../classes/App.BuildXML.html">BuildXML</a></li>
-                                                    <li class="class"><a href="../classes/App.Config.html">Config</a></li>
                                                     <li class="class"><a href="../classes/App.CurlDataRetrieval.html">CurlDataRetrieval</a></li>
                                                     <li class="class"><a href="../classes/App.FilterManipulateData.html">FilterManipulateData</a></li>
+                                                    <li class="class"><a href="../classes/App.ScanOptions.html">ScanOptions</a></li>
                                                     <li class="class"><a href="../classes/App.ScanURLs.html">ScanURLs</a></li>
                                                     <li class="class"><a href="../classes/App.SQLiteConnection.html">SQLiteConnection</a></li>
                                                     <li class="class"><a href="../classes/App.SQLiteDBSetup.html">SQLiteDBSetup</a></li>
@@ -196,7 +196,7 @@
                     <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal"><i class="icon-code"></i></a>
 
                     <h1><small>\App</small>ScanURLs</h1>
-                    <p><em>cURL Functions</em></p>
+                    <p><em>Functions used to work through the scanning of each web page</em></p>
                     
                     
                                         
@@ -215,6 +215,7 @@
                         </section>
                         <section class="row-fluid public">
                             <section class="span4">
+                                                                    <a href="../classes/App.ScanURLs.html#method___construct" class="">__construct()</a><br />
                                                                     <a href="../classes/App.ScanURLs.html#method_scanURL" class="">scanURL()</a><br />
                                                             </section>
                             <section class="span4">
@@ -238,9 +239,13 @@
                         <section class="row-fluid private">
                             <section class="span4">
                                                                     <a href="../classes/App.ScanURLs.html#method_scrapeLinks" class="">scrapeLinks()</a><br />
+                                                                    <a href="../classes/App.ScanURLs.html#method_cityLinksProcessing" class="">cityLinksProcessing()</a><br />
+                                                                    <a href="../classes/App.ScanURLs.html#method_newLinkFiltering" class="">newLinkFiltering()</a><br />
                                                             </section>
                             <section class="span4">
-                                                                    <em>No private properties found</em>
+                                                                    <a href="../classes/App.ScanURLs.html#property_sqlread" class="">$sqlread</a><br />
+                                                                    <a href="../classes/App.ScanURLs.html#property_sqlwrite" class="">$sqlwrite</a><br />
+                                                                    <a href="../classes/App.ScanURLs.html#property_fmd" class="">$fmd</a><br />
                                                             </section>
                             <section class="span4">
                                 <em>N/A</em>
@@ -274,7 +279,87 @@
             </div>
 
                         
-                        
+                                    <a id="properties" name="properties"></a>
+            <div class="row-fluid">
+                <div class="span8 content class">
+                    <h2>Properties</h2>
+                </div>
+                <aside class="span4 detailsbar"></aside>
+            </div>
+
+                                                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="property_sqlread" name="property_sqlread" class="anchor"></a>
+            <article class="property">
+                <h3 class="private ">$sqlread</h3>
+                <pre class="signature">$sqlread : object</pre>
+                <p><em>Instantiated SQLiteRead class in class constructor</em></p>
+                
+
+                                <h4>Type</h4>
+                object
+                                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="property_sqlwrite" name="property_sqlwrite" class="anchor"></a>
+            <article class="property">
+                <h3 class="private ">$sqlwrite</h3>
+                <pre class="signature">$sqlwrite : object</pre>
+                <p><em>Instantiated SQLiteWrite class in class constructor</em></p>
+                
+
+                                <h4>Type</h4>
+                object
+                                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="property_fmd" name="property_fmd" class="anchor"></a>
+            <article class="property">
+                <h3 class="private ">$fmd</h3>
+                <pre class="signature">$fmd : object</pre>
+                <p><em>Instantiated FilterManipulateData class in class constructor</em></p>
+                
+
+                                <h4>Type</h4>
+                object
+                                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                            
                                     <a id="methods" name="methods"></a>
             <div class="row-fluid">
                 <div class="span8 content class"><h2>Methods</h2></div>
@@ -283,25 +368,59 @@
 
                                     <div class="row-fluid">
         <div class="span8 content class">
+            <a id="method___construct" name="method___construct" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">__construct()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">__construct() </pre>
+                <p><em>Class constructor method, instantiates common classes used in all functions and assigns them to properties</em></p>
+                
+
+                
+                
+                				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
             <a id="method_scanURL" name="method_scanURL" class="anchor"></a>
             <article class="method">
                 <h3 class="public ">scanURL()</h3>
                 <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
-                <pre class="signature" style="margin-right: 54px;">scanURL(  <span class="argument">$url</span>,   <span class="argument">$locale</span>) </pre>
-                <p><em></em></p>
-                
+                <pre class="signature" style="margin-right: 54px;">scanURL(string  <span class="argument">$url</span>, string  <span class="argument">$locale</span>) </pre>
+                <p><em>Meat and bones of the application. This method takes the URL to be scanned, as well as the locale being used, and does the following:
+Retrieves the web page data and information, drops pages which have HTTP errors, then scans the page for links.</em></p>
+                <p>If the page was the sitemap, send to cityLinksProcessing for special processing
+Sends the new links to newLinkFiltering method for conversion to absolute links, and to filter out duplicates, non musement Links,
+robot links, urls related to non top 20 cities and non top 20 events.
+New links are then added to the links table and the scanned link is updated to show it has been 'worked'</p>
 
                                     <h4>Parameters</h4>
                     <table class="table table-condensed table-hover">
                                                     <tr>
-                                <td></td>
+                                <td>string</td>
                                 <td>$url </td>
-                                <td></td>
+                                <td><ul>
+<li>this is the URL which will be scanned</li>
+</ul></td>
                             </tr>
                                                     <tr>
-                                <td></td>
+                                <td>string</td>
                                 <td>$locale </td>
-                                <td></td>
+                                <td><ul>
+<li>the locale for which the XML is being generated</li>
+</ul></td>
                             </tr>
                                             </table>
                 
@@ -326,26 +445,133 @@
             <article class="method">
                 <h3 class="private ">scrapeLinks()</h3>
                 <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
-                <pre class="signature" style="margin-right: 54px;">scrapeLinks(  <span class="argument">$pagecontent</span>,   <span class="argument">$url</span>) </pre>
-                <p><em></em></p>
+                <pre class="signature" style="margin-right: 54px;">scrapeLinks(array  <span class="argument">$pagecontent</span>, string  <span class="argument">$url</span>) : array</pre>
+                <p><em>Method takes the page content, and using a created DOM Document object, loads the content as HTML to analyse. It then loops
+through the page content looking for &lt;a&gt; links and populating an array with the results. Contains special functionality
+for the sitemap page which contains city links only in the &lt;h3&gt; tags. Builds a separate array with this data, when relevant
+and returns both.</em></p>
                 
 
                                     <h4>Parameters</h4>
                     <table class="table table-condensed table-hover">
                                                     <tr>
-                                <td></td>
+                                <td>array</td>
                                 <td>$pagecontent </td>
-                                <td></td>
+                                <td><ul>
+<li>the content of the web page as gathered by the curl_exec command</li>
+</ul></td>
                             </tr>
                                                     <tr>
-                                <td></td>
+                                <td>string</td>
                                 <td>$url </td>
-                                <td></td>
+                                <td><ul>
+<li>the URL to be scraped</li>
+</ul></td>
+                            </tr>
+                                            </table>
+                
+                
+                                    <h4>Returns</h4>
+                    array
+                                            &mdash; <ul>
+<li>contains all new links found on the webpage, as well as an array containing all
+links relating to a city, if the page analysed was the sitemap.</li>
+</ul>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_cityLinksProcessing" name="method_cityLinksProcessing" class="anchor"></a>
+            <article class="method">
+                <h3 class="private ">cityLinksProcessing()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">cityLinksProcessing(array  <span class="argument">$citylinks</span>) </pre>
+                <p><em>Used only for the sitemap page. Takes an array containing all the cities scraped from the page, and check to see if they
+are in our &quot;top 20&quot; list. If they are then, add them into our list of links with an include flag of 1, so they can be included
+in our sitemap. Otherwise, add them with an include flag of 0, and add the url to the &quot;city_rejects&quot; table, so related URLs
+ can be easily identified and excluded.</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>array</td>
+                                <td>$citylinks </td>
+                                <td><ul>
+<li>array containing all links scraped from the sitemap page</li>
+</ul></td>
                             </tr>
                                             </table>
                 
                 
                 				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_newLinkFiltering" name="method_newLinkFiltering" class="anchor"></a>
+            <article class="method">
+                <h3 class="private ">newLinkFiltering()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">newLinkFiltering(array  <span class="argument">$newlinks</span>, string  <span class="argument">$locale</span>) : array</pre>
+                <p><em>Runs through a list of URLs found on a web page, and performs a series of checks to see whether the URL should be
+included in the XML output. Calls the following methods:
+FilterManipulateData-&gt;relativeToAbsoluteLink() - converts the link to absolute, if not already
+FilterManipulateData-&gt;findPageTypeFromURL() - designate page type for link
+FilterManipulateData-&gt;checkURLPath() - checks URL is musement.com and for the given locale
+FilterManipulateData-&gt;checkRobotPages() - checks if the URL is on the robots.txt page
+FilterManipulateData-&gt;isCityReject() - is the URL related to a non top 20 city
+FilterManipulateData-&gt;isTop20Event() - is the URL an event and a non top 20 activity
+Returns an array containing the data to be written to the database, based on the result of these checks</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>array</td>
+                                <td>$newlinks </td>
+                                <td><ul>
+<li>array containing all links found in the scanned web page</li>
+</ul></td>
+                            </tr>
+                                                    <tr>
+                                <td>string</td>
+                                <td>$locale </td>
+                                <td><ul>
+<li>the locale for which the XML is being generated</li>
+</ul></td>
+                            </tr>
+                                            </table>
+                
+                
+                                    <h4>Returns</h4>
+                    array
+                                            &mdash; <p>$linkstoadd - Based on the filter, this contains the URL, the view type it has been assigned and
+an include flag to designate whether it should be included on the XML output</p>
+                                    				
                             </article>
         </div>
         <aside class="span4 detailsbar">
@@ -409,7 +635,7 @@
                 <section class="span10 offset1">
                     <hr />
                     Documentation is powered by <a href="http://www.phpdoc.org/">phpDocumentor </a> and authored
-                    on January 19th, 2020 at 20:25.
+                    on January 20th, 2020 at 12:40.
                 </section>
             </section>
         </section>

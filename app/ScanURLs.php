@@ -17,11 +17,21 @@ use \DOMDocument as DOMDocument;
 class ScanURLs {
 
   /**
-  * Instantiated classes of objects used in many functions in this class
+  * Instantiated SQLiteRead class in class constructor
   * @var object
   */
   private $sqlread;
+
+  /**
+  * Instantiated SQLiteWrite class in class constructor
+  * @var object
+  */
   private $sqlwrite;
+
+  /**
+  * Instantiated FilterManipulateData class in class constructor
+  * @var object
+  */
   private $fmd;
 
   /**
@@ -46,7 +56,7 @@ class ScanURLs {
   * and returns both.
   * @param array $pagecontent - the content of the web page as gathered by the curl_exec command
   * @param string $url - the URL to be scraped
-  * @return array - contains all new links (<a href="">) found on the webpage, as well as an array containing all
+  * @return array - contains all new links found on the webpage, as well as an array containing all
   * links relating to a city, if the page analysed was the sitemap.
   */
   private function scrapeLinks($pagecontent, $url) {

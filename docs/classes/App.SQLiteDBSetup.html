@@ -114,7 +114,7 @@
                         <ul class="dropdown-menu">
                             <li>
                                 <a href="../reports/errors.html">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <i class="icon-list-alt"></i>&#160;Errors <span class="label label-info pull-right">71</span>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <i class="icon-list-alt"></i>&#160;Errors <span class="label label-info pull-right">11</span>
                                 </a>
                             </li>
                             <li>
@@ -144,27 +144,27 @@
                                 <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle " data-toggle="collapse" data-target="#namespace-991413178"></a>
+                                    <a class="accordion-toggle " data-toggle="collapse" data-target="#namespace-208377355"></a>
                                 <a href="../namespaces/default.html" style="margin-left: 30px; padding-left: 0">\</a>
             </div>
-            <div id="namespace-991413178" class="accordion-body collapse in">
+            <div id="namespace-208377355" class="accordion-body collapse in">
                 <div class="accordion-inner">
 
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-592051711"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-308626894"></a>
                                 <a href="../namespaces/App.html" style="margin-left: 30px; padding-left: 0">App</a>
             </div>
-            <div id="namespace-592051711" class="accordion-body collapse ">
+            <div id="namespace-308626894" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
                     <ul>
                                                                                                     <li class="class"><a href="../classes/App.BuildXML.html">BuildXML</a></li>
-                                                    <li class="class"><a href="../classes/App.Config.html">Config</a></li>
                                                     <li class="class"><a href="../classes/App.CurlDataRetrieval.html">CurlDataRetrieval</a></li>
                                                     <li class="class"><a href="../classes/App.FilterManipulateData.html">FilterManipulateData</a></li>
+                                                    <li class="class"><a href="../classes/App.ScanOptions.html">ScanOptions</a></li>
                                                     <li class="class"><a href="../classes/App.ScanURLs.html">ScanURLs</a></li>
                                                     <li class="class"><a href="../classes/App.SQLiteConnection.html">SQLiteConnection</a></li>
                                                     <li class="class"><a href="../classes/App.SQLiteDBSetup.html">SQLiteDBSetup</a></li>
@@ -328,7 +328,7 @@
                 <h3 class="public ">connect()</h3>
                 <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
                 <pre class="signature" style="margin-right: 54px;">connect() : \PDO</pre>
-                <p><em>return in instance of the PDO object that connects to the SQLite database</em></p>
+                <p><em>return an instance of the PDO object that connects to the SQLite database</em></p>
                 
 
                 
@@ -358,7 +358,7 @@
                 <h3 class="public ">deleteDatabase()</h3>
                 <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
                 <pre class="signature" style="margin-right: 54px;">deleteDatabase() </pre>
-                <p><em>delete database</em></p>
+                <p><em>Method uses the config file to find location of database and deletes it</em></p>
                 
 
                 
@@ -412,7 +412,7 @@
                 <h3 class="public ">createTables()</h3>
                 <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
                 <pre class="signature" style="margin-right: 54px;">createTables() </pre>
-                <p><em>create tables</em></p>
+                <p><em>create db schema - cities, events, links, city_rejects, robot_pages</em></p>
                 
 
                 
@@ -437,14 +437,15 @@
             <article class="method">
                 <h3 class="public ">seedData()</h3>
                 <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
-                <pre class="signature" style="margin-right: 54px;">seedData(  <span class="argument">$locale</span>) </pre>
-                <p><em></em></p>
+                <pre class="signature" style="margin-right: 54px;">seedData(string  <span class="argument">$locale</span>) </pre>
+                <p><em>Publicly available function to execute the following methods, all needed to seed the database
+before scanning any web pages: insertCities, insertEvents &amp; insertRobotPages.</em></p>
                 
 
                                     <h4>Parameters</h4>
                     <table class="table table-condensed table-hover">
                                                     <tr>
-                                <td></td>
+                                <td>string</td>
                                 <td>$locale </td>
                                 <td></td>
                             </tr>
@@ -471,14 +472,15 @@
             <article class="method">
                 <h3 class="private ">insertCities()</h3>
                 <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
-                <pre class="signature" style="margin-right: 54px;">insertCities(  <span class="argument">$locale</span>) </pre>
-                <p><em></em></p>
+                <pre class="signature" style="margin-right: 54px;">insertCities(string  <span class="argument">$locale</span>) </pre>
+                <p><em>Uses the CurlDataRetrieval()-&gt;getAPIData method to retrieve the city data for the given locale, then
+inserts the id, name and the url into the cities table in the database</em></p>
                 
 
                                     <h4>Parameters</h4>
                     <table class="table table-condensed table-hover">
                                                     <tr>
-                                <td></td>
+                                <td>string</td>
                                 <td>$locale </td>
                                 <td></td>
                             </tr>
@@ -505,14 +507,16 @@
             <article class="method">
                 <h3 class="private ">insertEvents()</h3>
                 <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
-                <pre class="signature" style="margin-right: 54px;">insertEvents(  <span class="argument">$locale</span>) </pre>
-                <p><em></em></p>
+                <pre class="signature" style="margin-right: 54px;">insertEvents(string  <span class="argument">$locale</span>) </pre>
+                <p><em>Reads the top 20 city data from the SQLiteRead-&gt;retrieveCities method, then loops through this gathering the top 20
+activities per city, using the CurlDataRetrieval()-&gt;getAPIData for the given locale. Then inserts the uuid, title, url and city_id
+into the events table in the database</em></p>
                 
 
                                     <h4>Parameters</h4>
                     <table class="table table-condensed table-hover">
                                                     <tr>
-                                <td></td>
+                                <td>string</td>
                                 <td>$locale </td>
                                 <td></td>
                             </tr>
@@ -540,7 +544,8 @@
                 <h3 class="private ">insertRobotPages()</h3>
                 <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
                 <pre class="signature" style="margin-right: 54px;">insertRobotPages() </pre>
-                <p><em></em></p>
+                <p><em>Uses the CurlDataRetrieval()-&gt;getPageData method to retrieve all pages listed in the https://www.musement.com/robots.txt
+web page, and inserts the url into the robot_pages db table.</em></p>
                 
 
                 
@@ -609,7 +614,7 @@
                 <section class="span10 offset1">
                     <hr />
                     Documentation is powered by <a href="http://www.phpdoc.org/">phpDocumentor </a> and authored
-                    on January 19th, 2020 at 20:25.
+                    on January 20th, 2020 at 12:40.
                 </section>
             </section>
         </section>

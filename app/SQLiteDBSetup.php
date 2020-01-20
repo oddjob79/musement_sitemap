@@ -156,6 +156,7 @@ class SQLiteDBSetup extends SQLiteConnection {
   /**
   * Publicly available function to execute the following methods, all needed to seed the database
   * before scanning any web pages: insertCities, insertEvents & insertRobotPages.
+  * @param string $locale
   */
   public function seedData($locale) {
     $this->insertCities($locale);

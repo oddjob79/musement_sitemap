@@ -6,7 +6,7 @@ namespace App;
 require 'vendor/autoload.php';
 
 /**
- * SQLite Write Data to Database
+ * Includes all methods which write data to Database (Inserts / Updates)
  */
 class SQLiteWrite extends SQLiteConnection {
 
@@ -23,7 +23,10 @@ class SQLiteWrite extends SQLiteConnection {
       $this->pdo = $this->connect();
   }
 
-  // takes $links multi-dimensional array and uses data to update the links table
+  /**
+  * Takes a given array of links, containing the url, type and include flag and inserts the data into the links table
+  * @param array $links
+  */
   public function insertLinks($links) {
     foreach ($links as $link) {
       // set variables
@@ -47,9 +50,12 @@ class SQLiteWrite extends SQLiteConnection {
     }
   }
 
+  /**
+  * Takes a given URL, and updates the matching URL in the links table with the given include flag
+  * @param string $url - the url to match against the url column in the links table
+  * @param int $include
+  */
   public function updateLink($url, $include) {
-
-    error_log('Updating Link', 0);
     // Prepare SQL Update Statement for setting link to 'not included'
     $stmt = $this->pdo->prepare('UPDATE links SET include = :include, worked = 1 where url = :url');
 
@@ -65,7 +71,10 @@ class SQLiteWrite extends SQLiteConnection {
     }
   }
 
-  // refactor to use an array to populate with multiple reject urls (foreach)
+  /**
+  * Takes a given URL, and inserts it into the city_rejects table.
+  * @param string $url
+  */
   public function insertCityReject($url) {
     // prepare sql statement
     $sql = 'INSERT INTO city_rejects(url) VALUES(:url)';

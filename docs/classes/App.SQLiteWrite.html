@@ -114,7 +114,7 @@
                         <ul class="dropdown-menu">
                             <li>
                                 <a href="../reports/errors.html">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <i class="icon-list-alt"></i>&#160;Errors <span class="label label-info pull-right">71</span>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <i class="icon-list-alt"></i>&#160;Errors <span class="label label-info pull-right">11</span>
                                 </a>
                             </li>
                             <li>
@@ -144,27 +144,27 @@
                                 <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle " data-toggle="collapse" data-target="#namespace-119609678"></a>
+                                    <a class="accordion-toggle " data-toggle="collapse" data-target="#namespace-1879399074"></a>
                                 <a href="../namespaces/default.html" style="margin-left: 30px; padding-left: 0">\</a>
             </div>
-            <div id="namespace-119609678" class="accordion-body collapse in">
+            <div id="namespace-1879399074" class="accordion-body collapse in">
                 <div class="accordion-inner">
 
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1941663622"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1392861700"></a>
                                 <a href="../namespaces/App.html" style="margin-left: 30px; padding-left: 0">App</a>
             </div>
-            <div id="namespace-1941663622" class="accordion-body collapse ">
+            <div id="namespace-1392861700" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
                     <ul>
                                                                                                     <li class="class"><a href="../classes/App.BuildXML.html">BuildXML</a></li>
-                                                    <li class="class"><a href="../classes/App.Config.html">Config</a></li>
                                                     <li class="class"><a href="../classes/App.CurlDataRetrieval.html">CurlDataRetrieval</a></li>
                                                     <li class="class"><a href="../classes/App.FilterManipulateData.html">FilterManipulateData</a></li>
+                                                    <li class="class"><a href="../classes/App.ScanOptions.html">ScanOptions</a></li>
                                                     <li class="class"><a href="../classes/App.ScanURLs.html">ScanURLs</a></li>
                                                     <li class="class"><a href="../classes/App.SQLiteConnection.html">SQLiteConnection</a></li>
                                                     <li class="class"><a href="../classes/App.SQLiteDBSetup.html">SQLiteDBSetup</a></li>
@@ -196,7 +196,7 @@
                     <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal"><i class="icon-code"></i></a>
 
                     <h1><small>\App</small>SQLiteWrite</h1>
-                    <p><em>SQLite Write Data to Database</em></p>
+                    <p><em>Includes all methods which write data to Database (Inserts / Updates)</em></p>
                     
                     
                                         
@@ -327,7 +327,7 @@
                 <h3 class="public ">connect()</h3>
                 <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
                 <pre class="signature" style="margin-right: 54px;">connect() : \PDO</pre>
-                <p><em>return in instance of the PDO object that connects to the SQLite database</em></p>
+                <p><em>return an instance of the PDO object that connects to the SQLite database</em></p>
                 
 
                 
@@ -357,7 +357,7 @@
                 <h3 class="public ">deleteDatabase()</h3>
                 <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
                 <pre class="signature" style="margin-right: 54px;">deleteDatabase() </pre>
-                <p><em>delete database</em></p>
+                <p><em>Method uses the config file to find location of database and deletes it</em></p>
                 
 
                 
@@ -410,14 +410,14 @@
             <article class="method">
                 <h3 class="public ">insertLinks()</h3>
                 <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
-                <pre class="signature" style="margin-right: 54px;">insertLinks(  <span class="argument">$links</span>) </pre>
-                <p><em></em></p>
+                <pre class="signature" style="margin-right: 54px;">insertLinks(array  <span class="argument">$links</span>) </pre>
+                <p><em>Takes a given array of links, containing the url, type and include flag and inserts the data into the links table</em></p>
                 
 
                                     <h4>Parameters</h4>
                     <table class="table table-condensed table-hover">
                                                     <tr>
-                                <td></td>
+                                <td>array</td>
                                 <td>$links </td>
                                 <td></td>
                             </tr>
@@ -444,19 +444,21 @@
             <article class="method">
                 <h3 class="public ">updateLink()</h3>
                 <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
-                <pre class="signature" style="margin-right: 54px;">updateLink(  <span class="argument">$url</span>,   <span class="argument">$include</span>) </pre>
-                <p><em></em></p>
+                <pre class="signature" style="margin-right: 54px;">updateLink(string  <span class="argument">$url</span>, integer  <span class="argument">$include</span>) </pre>
+                <p><em>Takes a given URL, and updates the matching URL in the links table with the given include flag</em></p>
                 
 
                                     <h4>Parameters</h4>
                     <table class="table table-condensed table-hover">
                                                     <tr>
-                                <td></td>
+                                <td>string</td>
                                 <td>$url </td>
-                                <td></td>
+                                <td><ul>
+<li>the url to match against the url column in the links table</li>
+</ul></td>
                             </tr>
                                                     <tr>
-                                <td></td>
+                                <td>integer</td>
                                 <td>$include </td>
                                 <td></td>
                             </tr>
@@ -483,14 +485,14 @@
             <article class="method">
                 <h3 class="public ">insertCityReject()</h3>
                 <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
-                <pre class="signature" style="margin-right: 54px;">insertCityReject(  <span class="argument">$url</span>) </pre>
-                <p><em></em></p>
+                <pre class="signature" style="margin-right: 54px;">insertCityReject(string  <span class="argument">$url</span>) </pre>
+                <p><em>Takes a given URL, and inserts it into the city_rejects table.</em></p>
                 
 
                                     <h4>Parameters</h4>
                     <table class="table table-condensed table-hover">
                                                     <tr>
-                                <td></td>
+                                <td>string</td>
                                 <td>$url </td>
                                 <td></td>
                             </tr>
@@ -561,7 +563,7 @@
                 <section class="span10 offset1">
                     <hr />
                     Documentation is powered by <a href="http://www.phpdoc.org/">phpDocumentor </a> and authored
-                    on January 19th, 2020 at 20:25.
+                    on January 20th, 2020 at 12:40.
                 </section>
             </section>
         </section>

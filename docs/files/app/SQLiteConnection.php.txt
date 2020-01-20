@@ -2,7 +2,7 @@
 namespace App;
 
 /**
- * SQLite connnection - taken from SQLite manual
+ * SQLite connnection class (taken from SQLite manual, and updated slightly)
  */
 class SQLiteConnection {
     /**
@@ -12,7 +12,7 @@ class SQLiteConnection {
     private $pdo;
 
     /**
-     * return in instance of the PDO object that connects to the SQLite database
+     * return an instance of the PDO object that connects to the SQLite database
      * @return \PDO
      */
     public function connect() {
@@ -27,7 +27,7 @@ class SQLiteConnection {
     }
 
     /**
-     * delete database
+     * Method uses the config file to find location of database and deletes it
      */
      public function deleteDatabase() {
        unlink(Config::PATH_TO_SQLITE_FILE);

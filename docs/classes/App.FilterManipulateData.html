@@ -114,7 +114,7 @@
                         <ul class="dropdown-menu">
                             <li>
                                 <a href="../reports/errors.html">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <i class="icon-list-alt"></i>&#160;Errors <span class="label label-info pull-right">71</span>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <i class="icon-list-alt"></i>&#160;Errors <span class="label label-info pull-right">11</span>
                                 </a>
                             </li>
                             <li>
@@ -144,27 +144,27 @@
                                 <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle " data-toggle="collapse" data-target="#namespace-171047969"></a>
+                                    <a class="accordion-toggle " data-toggle="collapse" data-target="#namespace-1012686174"></a>
                                 <a href="../namespaces/default.html" style="margin-left: 30px; padding-left: 0">\</a>
             </div>
-            <div id="namespace-171047969" class="accordion-body collapse in">
+            <div id="namespace-1012686174" class="accordion-body collapse in">
                 <div class="accordion-inner">
 
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-821202831"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-684721229"></a>
                                 <a href="../namespaces/App.html" style="margin-left: 30px; padding-left: 0">App</a>
             </div>
-            <div id="namespace-821202831" class="accordion-body collapse ">
+            <div id="namespace-684721229" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
                     <ul>
                                                                                                     <li class="class"><a href="../classes/App.BuildXML.html">BuildXML</a></li>
-                                                    <li class="class"><a href="../classes/App.Config.html">Config</a></li>
                                                     <li class="class"><a href="../classes/App.CurlDataRetrieval.html">CurlDataRetrieval</a></li>
                                                     <li class="class"><a href="../classes/App.FilterManipulateData.html">FilterManipulateData</a></li>
+                                                    <li class="class"><a href="../classes/App.ScanOptions.html">ScanOptions</a></li>
                                                     <li class="class"><a href="../classes/App.ScanURLs.html">ScanURLs</a></li>
                                                     <li class="class"><a href="../classes/App.SQLiteConnection.html">SQLiteConnection</a></li>
                                                     <li class="class"><a href="../classes/App.SQLiteDBSetup.html">SQLiteDBSetup</a></li>
@@ -196,7 +196,7 @@
                     <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal"><i class="icon-code"></i></a>
 
                     <h1><small>\App</small>FilterManipulateData</h1>
-                    <p><em>Contains methods related to filtering out unwanted data or manipulating during scan</em></p>
+                    <p><em>Contains methods related to filtering out unwanted data or manipulating data during scan</em></p>
                     
                     
                                         
@@ -294,21 +294,26 @@
             <article class="method">
                 <h3 class="public ">relativeToAbsoluteLink()</h3>
                 <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
-                <pre class="signature" style="margin-right: 54px;">relativeToAbsoluteLink(  <span class="argument">$url</span>) </pre>
-                <p><em></em></p>
+                <pre class="signature" style="margin-right: 54px;">relativeToAbsoluteLink(string  <span class="argument">$url</span>) : string</pre>
+                <p><em>Takes a given URL and, if relative, converts it to an absolute URL, then returns it as a string</em></p>
                 
 
                                     <h4>Parameters</h4>
                     <table class="table table-condensed table-hover">
                                                     <tr>
-                                <td></td>
+                                <td>string</td>
                                 <td>$url </td>
-                                <td></td>
+                                <td><ul>
+<li>to be checked and / or converted</li>
+</ul></td>
                             </tr>
                                             </table>
                 
                 
-                				
+                                    <h4>Returns</h4>
+                    string
+                                            &mdash; <p>$url - converted or checked</p>
+                                    				
                             </article>
         </div>
         <aside class="span4 detailsbar">
@@ -328,26 +333,33 @@
             <article class="method">
                 <h3 class="public ">checkURLPath()</h3>
                 <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
-                <pre class="signature" style="margin-right: 54px;">checkURLPath(  <span class="argument">$url</span>,   <span class="argument">$locale</span>) </pre>
-                <p><em></em></p>
+                <pre class="signature" style="margin-right: 54px;">checkURLPath(string  <span class="argument">$url</span>, string  <span class="argument">$locale</span>) : integer</pre>
+                <p><em>Takes a given URL and checks to see if the path matches the string &#039;www.musement.com&#039;, with the given locale. Returns a 1 if true, or a 0 if false.</em></p>
                 
 
                                     <h4>Parameters</h4>
                     <table class="table table-condensed table-hover">
                                                     <tr>
-                                <td></td>
+                                <td>string</td>
                                 <td>$url </td>
-                                <td></td>
+                                <td><ul>
+<li>the url to be checked</li>
+</ul></td>
                             </tr>
                                                     <tr>
-                                <td></td>
+                                <td>string</td>
                                 <td>$locale </td>
-                                <td></td>
+                                <td><ul>
+<li>the locale to be checked</li>
+</ul></td>
                             </tr>
                                             </table>
                 
                 
-                				
+                                    <h4>Returns</h4>
+                    integer
+                                            &mdash; <p>$include - really a boolean, 1 or 0, depending on whether the url is designated as 'valid'.</p>
+                                    				
                             </article>
         </div>
         <aside class="span4 detailsbar">
@@ -367,21 +379,26 @@
             <article class="method">
                 <h3 class="public ">checkRobotPages()</h3>
                 <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
-                <pre class="signature" style="margin-right: 54px;">checkRobotPages(  <span class="argument">$url</span>) </pre>
-                <p><em></em></p>
-                
+                <pre class="signature" style="margin-right: 54px;">checkRobotPages(string  <span class="argument">$url</span>) : integer</pre>
+                <p><em>Takes a given URL and checks to see if the URL matches one of the URLs given in the site&#039;s robots.txt file.</em></p>
+                <p>These &quot;robot urls&quot; are stored in the db. Returns a 1 or 0, depending on if the URL matches a robot URL, or not.</p>
 
                                     <h4>Parameters</h4>
                     <table class="table table-condensed table-hover">
                                                     <tr>
-                                <td></td>
+                                <td>string</td>
                                 <td>$url </td>
-                                <td></td>
+                                <td><ul>
+<li>the url to be checked</li>
+</ul></td>
                             </tr>
                                             </table>
                 
                 
-                				
+                                    <h4>Returns</h4>
+                    integer
+                                            &mdash; <p>$include - really a boolean, 1 or 0, depending on whether the url is designated as 'valid'.</p>
+                                    				
                             </article>
         </div>
         <aside class="span4 detailsbar">
@@ -401,21 +418,26 @@
             <article class="method">
                 <h3 class="public ">isHTTPError()</h3>
                 <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
-                <pre class="signature" style="margin-right: 54px;">isHTTPError(  <span class="argument">$pageinfo</span>) </pre>
-                <p><em></em></p>
-                
+                <pre class="signature" style="margin-right: 54px;">isHTTPError(array  <span class="argument">$pageinfo</span>) : integer</pre>
+                <p><em>Takes the web page information, as gathered via the curl_getinfo command and checks to see if the URL returns an HTTP 200 code.</em></p>
+                <p>If not, the page is designated as 'invalid'. Returns a 1 or 0, depending on if there is an HTTP error, or not.</p>
 
                                     <h4>Parameters</h4>
                     <table class="table table-condensed table-hover">
                                                     <tr>
-                                <td></td>
+                                <td>array</td>
                                 <td>$pageinfo </td>
-                                <td></td>
+                                <td><ul>
+<li>page information gathered via the curl_getinfo command</li>
+</ul></td>
                             </tr>
                                             </table>
                 
                 
-                				
+                                    <h4>Returns</h4>
+                    integer
+                                            &mdash; <p>$validurl - really a boolean, 1 or 0, depending on whether the url is designated as 'valid'.</p>
+                                    				
                             </article>
         </div>
         <aside class="span4 detailsbar">
@@ -435,21 +457,27 @@
             <article class="method">
                 <h3 class="public ">buildCityURL()</h3>
                 <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
-                <pre class="signature" style="margin-right: 54px;">buildCityURL(  <span class="argument">$url</span>) </pre>
-                <p><em></em></p>
+                <pre class="signature" style="margin-right: 54px;">buildCityURL(string  <span class="argument">$url</span>) : string</pre>
+                <p><em>Takes a given URL, and strips the path information down to include only the Scheme, Host, locale and the first &quot;element&quot; of the path,
+then returns the result as a string. This allows us to see what city the URL relates to.</em></p>
                 
 
                                     <h4>Parameters</h4>
                     <table class="table table-condensed table-hover">
                                                     <tr>
-                                <td></td>
+                                <td>string</td>
                                 <td>$url </td>
-                                <td></td>
+                                <td><ul>
+<li>the URL to be converted</li>
+</ul></td>
                             </tr>
                                             </table>
                 
                 
-                				
+                                    <h4>Returns</h4>
+                    string
+                                            &mdash; <p>$cityurl - the URL converted into it's &quot;city&quot; component only</p>
+                                    				
                             </article>
         </div>
         <aside class="span4 detailsbar">
@@ -469,21 +497,26 @@
             <article class="method">
                 <h3 class="public ">isTop20Event()</h3>
                 <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
-                <pre class="signature" style="margin-right: 54px;">isTop20Event(  <span class="argument">$url</span>) </pre>
-                <p><em></em></p>
-                
+                <pre class="signature" style="margin-right: 54px;">isTop20Event(string  <span class="argument">$url</span>) : integer</pre>
+                <p><em>Takes a given URL, and checks to see if it matches a URL contained in the events database table. This designates it as a &quot;top 20 event&quot;.</em></p>
+                <p>Returns a 1 or 0, depending on if it is found or not.</p>
 
                                     <h4>Parameters</h4>
                     <table class="table table-condensed table-hover">
                                                     <tr>
-                                <td></td>
+                                <td>string</td>
                                 <td>$url </td>
-                                <td></td>
+                                <td><ul>
+<li>the URL to be checked</li>
+</ul></td>
                             </tr>
                                             </table>
                 
                 
-                				
+                                    <h4>Returns</h4>
+                    integer
+                                            &mdash; <p>$include - really a boolean, 1 or 0, depending on whether the url is found in the events table.</p>
+                                    				
                             </article>
         </div>
         <aside class="span4 detailsbar">
@@ -503,21 +536,26 @@
             <article class="method">
                 <h3 class="public ">findPageTypeFromURL()</h3>
                 <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
-                <pre class="signature" style="margin-right: 54px;">findPageTypeFromURL(  <span class="argument">$link</span>) </pre>
-                <p><em></em></p>
+                <pre class="signature" style="margin-right: 54px;">findPageTypeFromURL(string  <span class="argument">$url</span>) : string</pre>
+                <p><em>Takes a given URL, and based on the format of the URL, decides what type of page it is. Returns the page or &#039;view&#039; type as a string.</em></p>
                 
 
                                     <h4>Parameters</h4>
                     <table class="table table-condensed table-hover">
                                                     <tr>
-                                <td></td>
-                                <td>$link </td>
-                                <td></td>
+                                <td>string</td>
+                                <td>$url </td>
+                                <td><ul>
+<li>the URL to be analysed</li>
+</ul></td>
                             </tr>
                                             </table>
                 
                 
-                				
+                                    <h4>Returns</h4>
+                    string
+                                            &mdash; <p>$viewtype - the type of page it is (other, event, city, unknown).</p>
+                                    				
                             </article>
         </div>
         <aside class="span4 detailsbar">
@@ -537,26 +575,34 @@
             <article class="method">
                 <h3 class="public ">isCityReject()</h3>
                 <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
-                <pre class="signature" style="margin-right: 54px;">isCityReject(  <span class="argument">$link</span>,   <span class="argument">$cityrejects</span>) </pre>
-                <p><em></em></p>
-                
+                <pre class="signature" style="margin-right: 54px;">isCityReject(string  <span class="argument">$url</span>, array  <span class="argument">$cityrejects</span>) : integer</pre>
+                <p><em>Takes a given URL, and an array of cities which have been included on the &quot;rejects&quot; list and stored in the database,
+then uses the buildCityURL method to find the city which the url is related to and checks to see if the city is on the rejects list.</em></p>
+                <p>Returns a 1 or a 0, depending on if it is found.</p>
 
                                     <h4>Parameters</h4>
                     <table class="table table-condensed table-hover">
                                                     <tr>
-                                <td></td>
-                                <td>$link </td>
-                                <td></td>
+                                <td>string</td>
+                                <td>$url </td>
+                                <td><ul>
+<li>the URL to be checked</li>
+</ul></td>
                             </tr>
                                                     <tr>
-                                <td></td>
+                                <td>array</td>
                                 <td>$cityrejects </td>
-                                <td></td>
+                                <td><ul>
+<li>an array containing all the city urls which have been previously identified as &quot;non top 20&quot;</li>
+</ul></td>
                             </tr>
                                             </table>
                 
                 
-                				
+                                    <h4>Returns</h4>
+                    integer
+                                            &mdash; <p>$include - really a boolean, 1 or 0, depending on whether the &quot;city&quot; part of the url is found in the $cityrejects array.</p>
+                                    				
                             </article>
         </div>
         <aside class="span4 detailsbar">
@@ -620,7 +666,7 @@
                 <section class="span10 offset1">
                     <hr />
                     Documentation is powered by <a href="http://www.phpdoc.org/">phpDocumentor </a> and authored
-                    on January 19th, 2020 at 20:25.
+                    on January 20th, 2020 at 12:40.
                 </section>
             </section>
         </section>

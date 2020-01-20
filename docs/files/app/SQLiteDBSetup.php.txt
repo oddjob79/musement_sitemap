@@ -29,7 +29,7 @@ class SQLiteDBSetup extends SQLiteConnection {
   }
 
   /**
-   * create tables
+   * create db schema - cities, events, links, city_rejects, robot_pages
    */
   public function createTables() {
       $commands = [
@@ -64,9 +64,11 @@ class SQLiteDBSetup extends SQLiteConnection {
       }
   }
 
-  // Inserts city id and url into cities table
-  // @param int $id
-  // @param string $url
+  /**
+  * Uses the CurlDataRetrieval()->getAPIData method to retrieve the city data for the given locale, then
+  * inserts the id, name and the url into the cities table in the database
+  * @param string $locale
+  */
   private function insertCities($locale) {
     // set vars for data retrieval
     $cityapiurl = 'https://api.musement.com/api/v3/cities?limit=20';
@@ -90,11 +92,15 @@ class SQLiteDBSetup extends SQLiteConnection {
     }
   }
 
+  /**
+  * Reads the top 20 city data from the SQLiteRead->retrieveCities method, then loops through this gathering the top 20
+  * activities per city, using the CurlDataRetrieval()->getAPIData for the given locale. Then inserts the uuid, title, url and city_id
+  * into the events table in the database
+  * @param string $locale
+  */
   private function insertEvents($locale) {
-    // connect to sqlite db
-    $pdo = (new SQLiteConnection())->connect();
     // instantiate the SQLiteDBSetup class
-    $sqlread = new SQLiteRead($pdo);
+    $sqlread = new SQLiteRead($this->pdo);
     // retrieve top 20 cities
     $citydata = $sqlread->retrieveCities();
     // retrieve top 20 activities per city and insert into database
@@ -122,7 +128,10 @@ class SQLiteDBSetup extends SQLiteConnection {
     }
   }
 
-
+  /**
+  * Uses the CurlDataRetrieval()->getPageData method to retrieve all pages listed in the https://www.musement.com/robots.txt
+  * web page, and inserts the url into the robot_pages db table.
+  */
   private function insertRobotPages() {
     // use curl to get robots.txt info
     $res = (new CurlDataRetrieval())->getPageData('https://www.musement.com/robots.txt');
@@ -144,7 +153,11 @@ class SQLiteDBSetup extends SQLiteConnection {
     }
   }
 
-  // seed data into tables at first run
+  /**
+  * Publicly available function to execute the following methods, all needed to seed the database
+  * before scanning any web pages: insertCities, insertEvents & insertRobotPages.
+  * @param string $locale
+  */
   public function seedData($locale) {
     $this->insertCities($locale);
     $this->insertEvents($locale);
