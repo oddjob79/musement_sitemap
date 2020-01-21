@@ -13,7 +13,6 @@ version_1/*
 curl1.php
 sitemap_old.xml
 sitemap.xml
-app/Config.php
 app/ScanURLs_old.php
 *.xml
 db/sitemap_std_it.db

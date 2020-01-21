@@ -12,8 +12,6 @@ if ($_POST['locale']) {
 /**
 * Code to start the process of running scan
 */
-  // delete log file
-  unlink('/vagrant/logs/php_errors.log');
   // set $locale from html form
   $locale = $_POST['locale'];
   $scantype = $_POST['version'];

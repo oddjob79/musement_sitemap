@@ -67,8 +67,8 @@ class ScanOptions {
       );
     }
 
-    // set time limit for open connection to 5 minutes
-    set_time_limit(1000);
+    // set time limit for open connection to 50 minutes
+    set_time_limit(3000);
 
     // while there are urls in the links table with worked == 0
     while (!empty($this->sqlread->checkLinksToWork())) {
@@ -127,12 +127,10 @@ class ScanOptions {
       );
     }
 
-    set_time_limit(120);
+    // set time limit for open connection to 50 minutes
+    set_time_limit(3000);
 
-    $counter = 0;
     foreach ($this->sqlread->retrieveLinks() as $link) {
-      $counter++;
-      error_log('Processing: '.$link['url'].'  Counter = '.$counter, 0);
       // scan & process
       $this->scan->scanURL($link['url'], $locale);
     }

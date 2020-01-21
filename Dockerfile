@@ -5,8 +5,9 @@ MAINTAINER Robert Turner
 COPY . /var/www/html
 COPY .docker/vhost.conf /etc/apache2/sites-available/000-default.conf
 
-CMD echo "ServerName localhost" >> /etc/apache2/apache2.conf
-CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
-
 RUN a2enmod rewrite
 RUN chown -R www-data:www-data /var/www
+
+# Entrypoint script to support heroku $PORT env var at runtime
+COPY .docker/run-apache2.sh /usr/local/bin
+CMD [ "run-apache2.sh" ]
