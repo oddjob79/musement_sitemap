@@ -18,4 +18,7 @@ app/ScanURLs_old.php
 *.xml
 db/sitemap_std_it.db
 .git
-.docker/.dockerignore
+.dockerignore
+version_1
+db/olddbs
+.gitignore
