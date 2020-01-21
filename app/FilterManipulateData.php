@@ -147,6 +147,11 @@ class FilterManipulateData {
       // it's an "other" type of page
       $viewtype = 'other';
     }
+    // is it a 'giftbox' type url - added due to testing of XML
+    if (strpos($path, 'giftbox')) {
+      // it's an "other" type of page
+      $viewtype = 'other';
+    }
     // else if path contains 4 slashes and the last character before the last slash is numeric
     elseif (substr_count($path, '/') == 4 && is_numeric(substr($path, -2, 1))) {
       // It's an activity / event
@@ -154,8 +159,16 @@ class FilterManipulateData {
     }
     // else if there are 3 slashes in the path and no dashes
     elseif (substr_count($path, '/') == 3 && !substr_count($path, '-')) {
-      // It's a city
-      $viewtype = 'city';
+      // needs to be validated against city list - retrieve top 20 cities
+      $cityurls = array_column((new SQLiteRead())->retrieveCities(), 'url');
+      // Added check to see if short url is in the top 20 cities,  if not, set as other link. Fix issue found in testing
+      if (in_array($url, $cityurls)) {
+        // It's a city
+        $viewtype = 'city';
+      } else {
+        // it's an other
+        $viewtype = 'other';
+      }
     } else {
       $viewtype = 'unknown';
     }
@@ -166,7 +179,8 @@ class FilterManipulateData {
   /**
   * Takes a given URL, and an array of cities which have been included on the "rejects" list and stored in the database,
   * then uses the buildCityURL method to find the city which the url is related to and checks to see if the city is on the rejects list.
-  * Returns a 1 or a 0, depending on if it is found.
+  * Added test to see if city_rejects array is populated, and to use the top 20 cities, if not, as found this was not controlling content in lite scan
+  * Returns a 1 or a 0, depending on if url is found.
   * @param string $url - the URL to be checked
   * @param array $cityrejects - an array containing all the city urls which have been previously identified as "non top 20"
   * @return int $include - really a boolean, 1 or 0, depending on whether the "city" part of the url is found in the $cityrejects array.
@@ -176,10 +190,22 @@ class FilterManipulateData {
     $include = 1;
     // find the city this url relates to
     $cityurl = $this->buildCityURL($url);
-    // check to see if the $cityurl is in the $cityrejects list, set to not include, if so
-    if (array_search($cityurl, array_column($cityrejects, 'url'))) {
-      $include = 0;
-    }
+    // if city_rejects table is populated (standard scan) - Added to fix issue with lite scan found during testing
+    // if (isset($cityrejects)) {
+    //   // check to see if the $cityurl is in the $cityrejects list, set to not include, if so
+    //   if (array_search($cityurl, array_column($cityrejects, 'url'))) {
+    //     $include = 0;
+    //   }
+    // // else use the top 20 city list to decide if the url should be inlcuded - - Added to fix issue with lite scan found during testing
+    // } else {
+      // if there are 4 slashes in the path
+      if (substr_count(parse_url($url, PHP_URL_PATH), '/') == 4) {
+        $topcities = array_column((new SQLiteRead())->retrieveCities(), 'url');
+        if (!in_array($cityurl, $topcities)) {
+          $include = 0;
+        }
+      }
+    // }
 
     return $include;
   }

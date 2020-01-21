@@ -61,9 +61,9 @@ class ScanOptions {
     $this->sqlwrite->insertLinks($seedurls);
     // gather the links you will use to begin the while loop
     $linksfound = $this->sqlread->retrieveLinks();
-    if (!isset($linksfound)) {
+    if (count($linksfound) != 2) {
       throw new \Exception(
-        "No links found in table. Unable to begin processing."
+        "Incorrect number of links in starting table. Try deleting database and re-running scan from beginning."
       );
     }
 
@@ -123,7 +123,7 @@ class ScanOptions {
     // validate starting data
     if (count($this->sqlread->retrieveLinks()) != 420) {
       throw new \Exception(
-        "Unexpected starting data set, should be 420 links to scan. Validate data and restart."
+        "Incorrect number of links in starting table. Try deleting database and re-running scan from beginning."
       );
     }
 

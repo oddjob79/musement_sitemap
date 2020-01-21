@@ -49,11 +49,7 @@ if ($_POST['locale']) {
   // create the xml file
   // instantiate BuildXML class
   $bxml = new BuildXML($alllinks);
-  try {
-    $sitemapxml = $bxml->createXMLFile($filename);
-  } catch (Exception $e) {
-    die( $e->__toString() );
-  }
+  $sitemapxml = $bxml->createXMLFile($filename);
   // output to browser
   header('Content-Type: text/xml');
   echo $sitemapxml;

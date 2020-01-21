@@ -24,11 +24,6 @@ class BuildXML {
   */
   public function __construct($links) {
     $this->links = $this->sortLinks($links);
-    if (!isset($links)) {
-      throw new \Exception(
-        "No data provided to build XML. Check links table for valid data."
-      );
-    }
   }
 
   /**

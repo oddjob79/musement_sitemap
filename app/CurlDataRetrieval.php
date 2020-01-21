@@ -65,11 +65,7 @@ class CurlDataRetrieval {
     }
 
     // use curl_getinfo to get information about the resource
-    if (($info = curl_getinfo($ch)) == null) {
-      throw new \Exception (
-        "Unable to retrieve page info for '$url'"
-      );
-    }
+    $info = curl_getinfo($ch);
 
     // close curl resource to free up system resources
     curl_close($ch);

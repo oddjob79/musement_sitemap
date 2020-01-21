@@ -30,7 +30,9 @@ class SQLiteConnection {
      * Method uses the config file to find location of database and deletes it
      */
      public function deleteDatabase() {
-       unlink(Config::PATH_TO_SQLITE_FILE);
+       if (Config::PATH_TO_SQLITE_FILE) {
+         unlink(Config::PATH_TO_SQLITE_FILE);
+       }
      }
 
 }
