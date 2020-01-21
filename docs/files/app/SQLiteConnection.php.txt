@@ -20,7 +20,7 @@ class SQLiteConnection {
         try {
            $this->pdo = new \PDO("sqlite:" . Config::PATH_TO_SQLITE_FILE);
         } catch (\PDOException $e) {
-           throw new Exception('Unable to connect to database.');
+           throw new \Exception('Unable to connect to database.');
         }
       }
       return $this->pdo;
@@ -30,7 +30,9 @@ class SQLiteConnection {
      * Method uses the config file to find location of database and deletes it
      */
      public function deleteDatabase() {
-       unlink(Config::PATH_TO_SQLITE_FILE);
+       if (Config::PATH_TO_SQLITE_FILE) {
+         unlink(Config::PATH_TO_SQLITE_FILE);
+       }
      }
 
 }

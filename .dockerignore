@@ -1,0 +1,21 @@
+curl2.php
+curl4.php
+index.php
+php_info.php
+track moved functions.php
+sitemap.xml
+db/olddbs/*
+spare_parts.php
+muse_sitemap_es.xml
+xml_parse.php
+sitemap_lite.php
+version_1/*
+curl1.php
+sitemap_old.xml
+sitemap.xml
+app/Config.php
+app/ScanURLs_old.php
+*.xml
+db/sitemap_std_it.db
+.git
+.docker/.dockerignore

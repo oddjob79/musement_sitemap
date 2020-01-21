@@ -56,6 +56,7 @@ class SQLiteDBSetup extends SQLiteConnection {
                   url TEXT NOT NULL)',
           'CREATE TABLE IF NOT EXISTS robot_pages (
                   id INTEGER PRIMARY KEY,
+
                   url TEXT NOT NULL)'
           ];
       // execute the sql commands to create new tables
@@ -73,7 +74,11 @@ class SQLiteDBSetup extends SQLiteConnection {
     // set vars for data retrieval
     $cityapiurl = 'https://api.musement.com/api/v3/cities?limit=20';
     // retrieve city data from api
-    $citydata = (new CurlDataRetrieval())->getAPIData($cityapiurl, $locale);
+    try {
+      $citydata = (new CurlDataRetrieval())->getAPIData($cityapiurl, $locale);
+    } catch (Exception $e) {
+      die ( $e->__toString() );
+    }
     // run through each city array to insert to db
     foreach ($citydata as $city) {
       // prepare sql statement
@@ -108,7 +113,11 @@ class SQLiteDBSetup extends SQLiteConnection {
       // set vars for data retrieval
       $eventapiurl = 'https://api.musement.com/api/v3/cities/'.$city['id'].'/activities?limit=20';
       // retrieve event data from api for this city
-      $eventdata = (new CurlDataRetrieval())->getAPIData($eventapiurl, $locale);
+      try {
+        $eventdata = (new CurlDataRetrieval())->getAPIData($eventapiurl, $locale);
+      } catch (Exception $e) {
+        die ( $e->__toString() );
+      }
       foreach ($eventdata['data'] as $event) {
         // prepare sql statement
         $sql = 'INSERT INTO events(uuid, title, url, city_id) VALUES(:uuid, :title, :url, :city_id)';
@@ -134,7 +143,11 @@ class SQLiteDBSetup extends SQLiteConnection {
   */
   private function insertRobotPages() {
     // use curl to get robots.txt info
-    $res = (new CurlDataRetrieval())->getPageData('https://www.musement.com/robots.txt');
+    try {
+      $res = (new CurlDataRetrieval())->getPageData('https://www.musement.com/robots.txt');
+    } catch (Exception $e) {
+      die ( $e->__toString() );
+    }
     // build array containing disallowed pages
     $robarr = explode("Disallow: /*", str_replace("\n", "", $res['content']));
     // remove the other text from robots.txt from array

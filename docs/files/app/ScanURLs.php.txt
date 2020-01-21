@@ -210,7 +210,12 @@ class ScanURLs {
     // instantiate CurlDataRetrieval class
     $curl = new CurlDataRetrieval();
     // use curl to get page data
-    $res = $curl->getPageData($url);
+    try {
+      $res = $curl->getPageData($url);
+    } catch (Exception $e) {
+      die ( $e->__toString() );
+      // build array containing disallowed pages
+    }
 
     // separate into page content (for links) and page info (for sitemap)
     $pageinfo = $res['info'];
