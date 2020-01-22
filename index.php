@@ -51,7 +51,7 @@ if (isset($_POST['locale'])) {
   ?>
   <html>
     <h2>Musement.com sitemap generator</h2>
-    <form method="post" action="sitemap.php" onsubmit="setTimeout(function(){window.location.reload();},1000)">
+    <form method="post" action="index.php" onsubmit="setTimeout(function(){window.location.reload();},1000)">
       Please choose your region:
       <select name="locale">
         <option value=""></option>

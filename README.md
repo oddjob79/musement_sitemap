@@ -44,7 +44,8 @@ I struggled with the performance of the app more than anything, and this led me 
 First and foremost, I decided to leave out the below scrapeView() method for detecting the page type via the "window.__INITIAL_STATE__", in favour of using the file naming convention to tell what the page type was. Unfortunately, the app is no longer as robust as I would have liked, although it does reduce the number of times it has to parse the web page for information, so did improve the time taken to run the scan dramatically.
 
 The performance issues also led me to include a "lite" version of the scan, which pre-populated the links table with all city and activity data from the API, and simply scanned these pages for other links. The retrieved links were not then scanned themselves, so were not checked to see if there were http redirects.
-<?php
+
+```
 private function scrapeView($xml) {
   // define $state and $view  as empty strings
   $state = ''; $view = '';
@@ -68,7 +69,7 @@ private function scrapeView($xml) {
 
   return $view;
 }
-?>
+```
 
 Background Processes
 --------------------
