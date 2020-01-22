@@ -51,7 +51,6 @@ if (isset($_POST['locale'])) {
   ?>
   <html>
     <h2>Musement.com sitemap generator</h2>
-    <h4>Built by Robert Turner</h4>
     <form method="post" action="sitemap.php" onsubmit="setTimeout(function(){window.location.reload();},1000)">
       Please choose your region:
       <select name="locale">
@@ -60,15 +59,17 @@ if (isset($_POST['locale'])) {
         <option value="it">it-IT</option>
         <option value="fr">fr-FR</option>
       </select>
-    <br />
-      Select version of scan (Please note Standard scan can take approx. 40 mins. Lite scan approx. 5 mins):<br />
+    <br /><br />
+      Select version of scan:
       <select name="version">
         <option value="standard">Standard</option>
         <option value="lite" selected="selected">Lite</option>
       </select>
     <br />
+      (Please note Standard scan can take approx. 40 mins. Lite scan approx. 5-10 mins)
+    <br /><br />
       XML Filename: <input type="text" name="filename">
-    <br />
+    <br /><br />
       <input type="submit" value="Scan Now"/>
     </form>
     <div>
@@ -86,6 +87,7 @@ if (isset($_POST['locale'])) {
       }
       ?>
     </div>
+    <div><a href="/docs">Documentation</a></div>
   </html>
 
 <?php

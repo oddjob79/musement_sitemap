@@ -18,7 +18,7 @@ Thank you for taking the time to review the project, I hope you find it agreeabl
 
 How to use
 -------------------------------------------------------------------------------
-The application has been containerized and uploaded to Heroku, and is available here - https://musement-sitemap.herokuapp.com/sitemap.php
+The application has been containerized and uploaded to Heroku, and is available here - https://musement-sitemap.herokuapp.com/
 To use, complete the form on the homepage. Select the locale you would like to generate the sitemap for, followed by the scan version (lite or standard). Finally, select the filename for the sitemap and click 'Scan Now' to begin scanning. You should see a list of all previously builit sitemap files on the homepage as well as the current file which is being run.
 
 Database
