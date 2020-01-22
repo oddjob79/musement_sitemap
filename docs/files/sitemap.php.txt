@@ -2,22 +2,27 @@
 // enable use of namespaces
 require 'vendor/autoload.php';
 
-use App\SQLiteRead as SQLiteRead;
 use App\SQLiteDBSetup as SQLiteDBSetup;
 use App\ScanOptions as ScanOptions;
-use App\BuildXML as BuildXML;
 
 // Check to see if we have already selected and posted the selected region
-if ($_POST['locale']) {
+if (isset($_POST['locale'])) {
 /**
 * Code to start the process of running scan
 */
   // delete log file
-  unlink('/vagrant/logs/php_errors.log');
+  $errorlog = '/vagrant/logs/php_errors.log';
+  if (file_exists($errorlog)) {
+    unlink($errorlog);
+  }
+
   // set $locale from html form
   $locale = $_POST['locale'];
   $scantype = $_POST['version'];
   $filename = $_POST['filename'];
+
+  // add tmp file to show that file is being created
+  fopen('./xml/'.substr($filename, 0, -3).'tmp', 'w');
 
   // instantiate the SQLiteDBSetup class - deletes old db, creates new one with schema
   $dbsetup = new SQLiteDBSetup();
@@ -29,39 +34,25 @@ if ($_POST['locale']) {
   // which scan level chosen
   if ($scantype == 'standard') {
     try {
-      $scanopt->standardScan($locale);
+      $scanopt->standardScan($locale, $filename);
     } catch (Exception $e) {
       die( $e->__toString() );
     }
   } elseif ($scantype == 'lite') {
     try {
-      $scanopt->liteScan($locale);
+      $scanopt->liteScan($locale, $filename);
     } catch (Exception $e) {
       die( $e->__toString() );
     }
   }
-
-  // Finished populating tables, now build xml
-  // instantiate the SQLiteRead class to read data from the database
-  $sqlread = new SQLiteRead();
-  // retrieve the full link list from the db for the final time
-  $alllinks = $sqlread->retrieveLinks();
-  // create the xml file
-  // instantiate BuildXML class
-  $bxml = new BuildXML($alllinks);
-  $sitemapxml = $bxml->createXMLFile($filename);
-  // output to browser
-  header('Content-Type: text/xml');
-  echo $sitemapxml;
-
 } else {
 
-    // html form for selecting locale and version
+  // html form for selecting locale and version
   ?>
   <html>
     <h2>Musement.com sitemap generator</h2>
     <h4>Built by Robert Turner</h4>
-    <form method="post" action="sitemap.php">
+    <form method="post" action="sitemap.php" onsubmit="setTimeout(function(){window.location.reload();},1000)">
       Please choose your region:
       <select name="locale">
         <option value=""></option>
@@ -70,16 +61,31 @@ if ($_POST['locale']) {
         <option value="fr">fr-FR</option>
       </select>
     <br />
-      Select version of scan:
+      Select version of scan (Please note Standard scan can take approx. 40 mins. Lite scan approx. 5 mins):<br />
       <select name="version">
         <option value="standard">Standard</option>
         <option value="lite" selected="selected">Lite</option>
       </select>
     <br />
-      XML Filename and (relative) path: <input type="text" name="filename">
+      XML Filename: <input type="text" name="filename">
     <br />
       <input type="submit" value="Scan Now"/>
     </form>
+    <div>
+      <h3>Current xml files</h3>
+      <?php
+      $dir = './xml';
+      $xmlfiles = scandir($dir);
+      foreach ($xmlfiles as $file) {
+        if (substr($file, -3, 3) == 'tmp') {
+          echo 'In progress... '.$file.'<br />';
+        }
+        if (substr($file, -3, 3) == 'xml') {
+          echo '<a href=xml/'.$file.'>'.$file.'</a><br />';
+        }
+      }
+      ?>
+    </div>
   </html>
 
 <?php

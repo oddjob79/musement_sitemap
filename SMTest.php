@@ -28,11 +28,29 @@ class SMTest extends TestCase {
   public function setUp() :void {
     // Declare $file var - location of the xml file
     // $file = 'sitemap_lite_es.xml';
-    $file = 'sitemap_lite_es_2101.xml';
+    // $file = 'sitemap_lite_es_2101.xml';
+    $file = $this->setXMLFileName();
     // instantiate the DOM
     $this->xml = new DOMDocument();
     // Load the url's contents into the DOM
     $this->xml->load($file);
+  }
+
+  /**
+  * Shamelessly liberated from https://stackoverflow.com/questions/1491020/get-the-latest-file-addition-in-a-directory
+  * Gives us the latest xml file for testing. As we're using the db to test against. Only the latest file is relevant.
+  */
+  private function setXMLFileName() {
+    $dir = './xml';
+    $lastMod = 0;
+    $lastModFile = '';
+    foreach (scandir($dir) as $entry) {
+      if (substr($entry, -3, 3) =='xml' && is_file($dir.'/'.$entry) && filemtime($dir.'/'.$entry) > $lastMod) {
+          $lastMod = filemtime($dir.'/'.$entry);
+          $lastModFile = $entry;
+      }
+    }
+    return $dir.'/'.$lastModFile;
   }
 
   /**
@@ -56,8 +74,8 @@ class SMTest extends TestCase {
   public function testDoAllURLsResolve() {
     // retrieve array of urls from xml file
     $arr = $this->retrieveLocLinks();
-    // select top 30 urls for speed purposes
-    $arr = array_slice($arr, 0, 30);
+    // select top 25 urls for speed purposes
+    $arr = array_slice($arr, 0, 25);
     // loop through urls
     foreach ($arr as $url) {
       // create curl resource

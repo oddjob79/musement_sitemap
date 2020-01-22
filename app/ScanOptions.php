@@ -8,6 +8,7 @@ require 'vendor/autoload.php';
 use App\SQLiteRead as SQLiteRead;
 use App\SQLiteWrite as SQLiteWrite;
 use App\ScanURLs as ScanURLs;
+use App\BuildXML as BuildXML;
 
 /**
  * Functions used prepare for and execute different scan types
@@ -47,9 +48,10 @@ class ScanOptions {
   * The sitemap page is then used to gather all cities and build a list of "city rejects", from which all other pages can be compared.
   * Each page that is scanned will potentially update the links table with yet more links to scan, so the while loop has to check
   * if there are any links which need to be scanned each time before proceeding, using the SQLiteRead->checkLinksToWork method
+  * Finally, build the XML file for the links gathered during the scan
   * @param $locale - the site locale, as selected on the HTML form
   */
-  public function standardScan($locale) {
+  public function standardScan($locale, $filename) {
     // Set initial target urls
     $target = 'https://www.musement.com/'.$locale.'/';
     $seedurls = [
@@ -68,7 +70,7 @@ class ScanOptions {
     }
 
     // set time limit for open connection to 50 minutes
-    set_time_limit(3000);
+    set_time_limit(5000);
 
     // while there are urls in the links table with worked == 0
     while (!empty($this->sqlread->checkLinksToWork())) {
@@ -89,15 +91,23 @@ class ScanOptions {
         }
       }
     }
+
+    // Finished populating tables, now build xml
+    // retrieve the full link list from the db for the final time
+    $alllinks = (new SQLiteRead())->retrieveLinks();
+    // create the xml file
+    (new BuildXML($alllinks))->createXMLFile($filename);
+
   }
 
   /**
   * Method which triggers the "lite" web site scan. This does not take long to run, but is not very thorough. It uses the API to gather
   * all "top 20" cities and events, and simply scans these pages for other links. It does not then scan these pages, so does not know if
   * the pages are valid, or if ant subsequent pages are to be found.
+  * Finally, build the XML file for the links gathered during the scan
   * @param $locale - the site locale, as selected on the HTML form
   */
-  public function liteScan($locale) {
+  public function liteScan($locale, $filename) {
     // gather city urls only
     $cities = array_column($this->sqlread->retrieveCities(), 'url');
     // generate new array containing urls and city type for sending to links table
@@ -134,5 +144,16 @@ class ScanOptions {
       // scan & process
       $this->scan->scanURL($link['url'], $locale);
     }
+
+    // Finished populating tables, now build xml
+    // retrieve the full link list from the db for the final time
+    $alllinks = (new SQLiteRead())->retrieveLinks();
+    // create the xml file
+    try {
+      (new BuildXML($alllinks))->createXMLFile($filename);
+    } catch (Exception $e) {
+      die( $e->__toString() );
+    }
+
   }
 }

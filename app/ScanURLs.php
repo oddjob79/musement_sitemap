@@ -142,8 +142,6 @@ class ScanURLs {
   * an include flag to designate whether it should be included on the XML output
   */
   private function newLinkFiltering($newlinks, $locale) {
-    error_log('Filtering', 0);
-
     // set all relative links to absolute
     foreach ($newlinks as $key => $link) {
       $abslink = $this->fmd->relativeToAbsoluteLink($link);
@@ -227,7 +225,6 @@ class ScanURLs {
       return;
     }
 
-    error_log('Scraping', 0);
     // scrape web page
     $alllinks = $this->scrapeLinks($pagecontent, $url);
     // split into two arrays. One for the new links found (standard)
@@ -243,7 +240,6 @@ class ScanURLs {
     // send all newly found links off for filtering
     $linkstoadd = $this->newLinkFiltering($newlinks, $locale);
 
-    error_log('Writing', 0);
     // insert links found on webpage to db as multi-dimensional array
     $this->sqlwrite->insertLinks($linkstoadd);
     $this->sqlwrite->updateLink($url, 1);

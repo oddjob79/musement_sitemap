@@ -32,10 +32,9 @@ class BuildXML {
   * As well as the URL, the createXMLFile method uses the page type to set the Priority, based on a city page requiring 0.7,
   * an activity (or event) requiring a 0.5 priority and any other page requiring a 1.0 priority. Last Modified Date information
   * was not available to be used.
-  * Generates an XML file based on the file given, and returns a string for HTML rendering
+  * Generates an XML file based on the filename given and removes the temp file
   * Used https://programmerblog.net/how-to-generate-xml-files-using-php/ to help build method
   * @param string $filename - name of the XML file to be generated
-  * @return string $xmloutput - contains XML for HTML rendering
   */
   public function createXMLFile($filename) {
     // check filename
@@ -89,17 +88,17 @@ class BuildXML {
     // add root element
     $dom->appendChild($root);
     // save to file
-    $dom->save($filename);
+    $dir = './xml/';
+    $dom->save($dir.$filename);
     // check if file has saved correctly
-    if (!file_exists($filename)) {
+    if (!file_exists($dir.$filename)) {
       throw new \Exception(
         "XML file '$filename' was not created. Please try again."
       );
     }
+    // remove the temp file
+    unlink('./xml/'.substr($filename, 0, -3).'tmp');
 
-    // format XML as HTML ready output string
-    $xmloutput = $dom->saveXML();
-    return $xmloutput;
   }
 
   /**

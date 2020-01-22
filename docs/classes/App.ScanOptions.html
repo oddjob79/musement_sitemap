@@ -114,7 +114,7 @@
                         <ul class="dropdown-menu">
                             <li>
                                 <a href="../reports/errors.html">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <i class="icon-list-alt"></i>&#160;Errors <span class="label label-info pull-right">15</span>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <i class="icon-list-alt"></i>&#160;Errors <span class="label label-info pull-right">19</span>
                                 </a>
                             </li>
                             <li>
@@ -144,19 +144,19 @@
                                 <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle " data-toggle="collapse" data-target="#namespace-87178974"></a>
+                                    <a class="accordion-toggle " data-toggle="collapse" data-target="#namespace-452276071"></a>
                                 <a href="../namespaces/default.html" style="margin-left: 30px; padding-left: 0">\</a>
             </div>
-            <div id="namespace-87178974" class="accordion-body collapse in">
+            <div id="namespace-452276071" class="accordion-body collapse in">
                 <div class="accordion-inner">
 
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-333973919"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-92526685"></a>
                                 <a href="../namespaces/App.html" style="margin-left: 30px; padding-left: 0">App</a>
             </div>
-            <div id="namespace-333973919" class="accordion-body collapse ">
+            <div id="namespace-92526685" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -399,12 +399,13 @@
             <article class="method">
                 <h3 class="public ">standardScan()</h3>
                 <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
-                <pre class="signature" style="margin-right: 54px;">standardScan(  <span class="argument">$locale</span>) </pre>
+                <pre class="signature" style="margin-right: 54px;">standardScan(  <span class="argument">$locale</span>,   <span class="argument">$filename</span>) </pre>
                 <p><em>Method which triggers the &quot;standard&quot; web site scan. It takes a long time to run, but is more thorough than the &quot;lite&quot; scan.</em></p>
                 <p>Uses the locale and sets the initial pages to be scanned as the homepage for that locale, and the sitemap-p page.
 The sitemap page is then used to gather all cities and build a list of &quot;city rejects&quot;, from which all other pages can be compared.
 Each page that is scanned will potentially update the links table with yet more links to scan, so the while loop has to check
-if there are any links which need to be scanned each time before proceeding, using the SQLiteRead-&gt;checkLinksToWork method</p>
+if there are any links which need to be scanned each time before proceeding, using the SQLiteRead-&gt;checkLinksToWork method
+Finally, build the XML file for the links gathered during the scan</p>
 
                                     <h4>Parameters</h4>
                     <table class="table table-condensed table-hover">
@@ -414,6 +415,11 @@ if there are any links which need to be scanned each time before proceeding, usi
                                 <td><ul>
 <li>the site locale, as selected on the HTML form</li>
 </ul></td>
+                            </tr>
+                                                    <tr>
+                                <td></td>
+                                <td>$filename </td>
+                                <td></td>
                             </tr>
                                             </table>
                 
@@ -438,11 +444,11 @@ if there are any links which need to be scanned each time before proceeding, usi
             <article class="method">
                 <h3 class="public ">liteScan()</h3>
                 <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
-                <pre class="signature" style="margin-right: 54px;">liteScan(  <span class="argument">$locale</span>) </pre>
+                <pre class="signature" style="margin-right: 54px;">liteScan(  <span class="argument">$locale</span>,   <span class="argument">$filename</span>) </pre>
                 <p><em>Method which triggers the &quot;lite&quot; web site scan. This does not take long to run, but is not very thorough. It uses the API to gather
 all &quot;top 20&quot; cities and events, and simply scans these pages for other links. It does not then scan these pages, so does not know if
 the pages are valid, or if ant subsequent pages are to be found.</em></p>
-                
+                <p>Finally, build the XML file for the links gathered during the scan</p>
 
                                     <h4>Parameters</h4>
                     <table class="table table-condensed table-hover">
@@ -452,6 +458,11 @@ the pages are valid, or if ant subsequent pages are to be found.</em></p>
                                 <td><ul>
 <li>the site locale, as selected on the HTML form</li>
 </ul></td>
+                            </tr>
+                                                    <tr>
+                                <td></td>
+                                <td>$filename </td>
+                                <td></td>
                             </tr>
                                             </table>
                 
@@ -520,7 +531,7 @@ the pages are valid, or if ant subsequent pages are to be found.</em></p>
                 <section class="span10 offset1">
                     <hr />
                     Documentation is powered by <a href="http://www.phpdoc.org/">phpDocumentor </a> and authored
-                    on January 21st, 2020 at 14:24.
+                    on January 22nd, 2020 at 12:19.
                 </section>
             </section>
         </section>
